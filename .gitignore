@@ -1,8 +1,11 @@
 # all environment variables
 **/.env
 
+# node js
+**/node_modules
+
 # log files
-*.log
+**/*.log
 
 # editor things
 .vscode/
