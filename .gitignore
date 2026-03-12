@@ -1,5 +1,6 @@
 # all environment variables
 **/.env
+**/.env.*
 
 # node js
 **/node_modules
