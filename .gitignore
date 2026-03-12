@@ -1,5 +1,5 @@
 # all environment variables
-.env
+.en*
 
 # log files
 *.log
