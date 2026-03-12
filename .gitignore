@@ -1,0 +1,10 @@
+# all environment variables
+.env
+
+# log files
+*.log
+
+# editor things
+.vscode/
+.idea/
+*.iml
