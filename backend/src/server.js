@@ -110,7 +110,13 @@ app.get("/api/bot/:id", async (req, res)=>{
 
 
         // send
-        res.send(bot);
+        if( !bot ){
+            console.log("Not found");
+            res.sendStatus(404);
+            return;
+        }
+        else
+            res.send(bot);
 
     } catch (err){
         console.error(err);
@@ -130,7 +136,13 @@ app.get("/api/bot", async (req, res)=>{
 
 
         // send
-        res.send(bots);
+        if( !bots ){
+            console.log("No bots found");
+            res.sendStatus(404);
+            return;
+        }
+        else
+            res.send(bots);
 
     } catch (err){
         console.error(err);
@@ -142,7 +154,48 @@ app.get("/api/bot", async (req, res)=>{
 
 // update
 app.put("/api/bot/:id", async (req, res)=>{
+    try{
+        // validation
+        if( !req.params.id )
+        {
+            console.log("Id is required");
+            res.sendStatus(400);
+            return;
+        }
+        if( typeof req.params.id !== 'string' )
+        {
+            console.log("Invalid id");
+            res.sendStatus(400);
+            return;
+        }
+        if( req.params.id !== req.body.bot_id )
+        {
+            console.log("Parameter and body ids don't match");
+            res.sendStatus(400);
+            return;
+        }
 
+
+        // mongo db
+        await client.connect();
+        const collection = client.db("users").collection("bots_for_mvp");
+
+        await collection.updateOne({ bot_id: req.body.bot_id }, {$set: {
+            bot_name: req.body.bot_name,
+            chat: req.body.chat
+        }});
+        const bot = await collection.findOne({bot_id: req.body.bot_id});
+
+
+        // send
+        res.send(bot);
+
+    } catch(err){
+        console.error(err);
+        res.sendStatus(500);
+    } finally{
+        await client.close();
+    }
 })
 
 // delete
