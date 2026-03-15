@@ -94,13 +94,23 @@ app.get("/api/bot/:id", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
-        // if( req.body. )
+        if( typeof req.params.id !== 'string' )
+        {
+            console.log("Id has to be string");
+            res.sendStatus(400);
+            return;
+        }
 
 
         // mongo db
+        await client.connect();
+
+        const collection = await client.db("users").collection("bots_for_mvp");
+        const bot = await collection.findOne({ bot_id: req.params.id });
 
 
         // send
+        res.send(bot);
 
     } catch (err){
         console.error(err);
