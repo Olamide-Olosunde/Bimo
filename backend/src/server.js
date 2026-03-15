@@ -27,7 +27,7 @@ app.use(cors(corsOptions));
 
 function generateRandomString(){
     const randomString = crypto.randomBytes(20).toString('hex');
-    console.log(randomString);
+    return randomString;
 }
 
 // create
@@ -40,14 +40,14 @@ app.post("/api/bot", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
-        if( typeof req.body.bot_name != 'string' ){
+        if( typeof req.body.bot_name !== 'string' ){
             console.log("Bot name has to be a string")
             res.sendStatus(400);
             return;
         }
         if( Array.isArray(req.body.embeddings) )//|| req.body.embeddings.length != 1536 )
         {
-            if(typeof req.body.embeddings[0] != 'number')
+            if(typeof req.body.embeddings[0] !== 'number')
             {
                 console.log("Embeddings have to be float")
                 res.sendStatus(400);
@@ -72,6 +72,7 @@ app.post("/api/bot", async (req, res)=>{
             chat: []
         });
 
+
         // send
         res.send(gen_id); //to be stored in localStorage for mvp
 
@@ -84,8 +85,29 @@ app.post("/api/bot", async (req, res)=>{
 })
 
 // read
-app.get("/api/bot/:id", (req, res)=>{
+app.get("/api/bot/:id", async (req, res)=>{
+    try{
+        // validation
+        if( !req.params.id )
+        {
+            console.log("No id in parameters");
+            res.sendStatus(400);
+            return;
+        }
+        // if( req.body. )
 
+
+        // mongo db
+
+
+        // send
+
+    } catch (err){
+        console.error(err);
+        res.sendStatus(500);
+    } finally{
+        await client.close();
+    }
 })
 
 // read all
@@ -102,6 +124,7 @@ app.put("/api/bot/:id", (req, res)=>{
 app.delete("/api/bot/:id", (req, res)=>{
 
 })
+
 
 
 app.listen(3000, ()=>{
