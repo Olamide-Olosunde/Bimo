@@ -105,7 +105,7 @@ app.get("/api/bot/:id", async (req, res)=>{
         // mongo db
         await client.connect();
 
-        const collection = await client.db("users").collection("bots_for_mvp");
+        const collection = client.db("users").collection("bots_for_mvp");
         const bot = await collection.findOne({ bot_id: req.params.id });
 
 
@@ -200,7 +200,54 @@ app.put("/api/bot/:id", async (req, res)=>{
 
 // delete
 app.delete("/api/bot/:id", async (req, res)=>{
+    try{
+        // validation
+        if( !req.params.id )
+        {
+            console.log("Id is required");
+            res.sendStatus(400);
+            return;
+        }
+        if( typeof req.params.id !== 'string' )
+        {
+            console.log("Invalid id");
+            res.sendStatus(400);
+            return;
+        }
+        // if( req.params.id !== req.body.bot_id )
+        // {
+        //     console.log("Parameter and body ids don't match");
+        //     res.sendStatus(400);
+        //     return;
+        // }
 
+
+        // mongo db
+        client.connect()
+        const collection = client.db("users").collection("bots_for_mvp");
+        const bot = await collection.findOne({ bot_id: req.params.id });
+
+        if( !bot )
+        {
+            res.send("Bot not found, so none deleted");
+            return;
+        }
+
+        const result = await collection.deleteOne({ bot_id: req.params.id });
+
+
+        // send
+        if( result.deletedCount === 1 )
+            res.send(result);   //will have to remove bot_id from localStorage in fe -- just for mvp
+        else
+            res.send("Couldn't delete bot");
+
+    } catch(err){
+        console.error(err);
+        res.sendStatus(500);
+    } finally {
+        client.close();
+    }
 })
 
 
