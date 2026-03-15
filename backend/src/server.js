@@ -121,17 +121,32 @@ app.get("/api/bot/:id", async (req, res)=>{
 })
 
 // read all
-app.get("/api/bot", (req, res)=>{
+app.get("/api/bot", async (req, res)=>{
+    try{
+        // mongo db
+        await client.connect();
+        const collection = client.db("users").collection("bots_for_mvp");
+        const bots = await collection.find().toArray();
 
+
+        // send
+        res.send(bots);
+
+    } catch (err){
+        console.error(err);
+        res.sendStatus(500);
+    } finally {
+        await client.close();
+    }
 })
 
 // update
-app.put("/api/bot/:id", (req, res)=>{
+app.put("/api/bot/:id", async (req, res)=>{
 
 })
 
 // delete
-app.delete("/api/bot/:id", (req, res)=>{
+app.delete("/api/bot/:id", async (req, res)=>{
 
 })
 
