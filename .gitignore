@@ -12,3 +12,7 @@
 .vscode/
 .idea/
 *.iml
+
+# Misc.
+**/.tmp
+Thumbs.db
