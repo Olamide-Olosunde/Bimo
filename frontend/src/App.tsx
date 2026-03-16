@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { OpenAIEmbeddings } from "@langchain/openai";
 
 
 function App() {
@@ -37,34 +38,34 @@ function App() {
     // console.log(chunks);
     return chunks;
   }
-  // async function embedText(txt: string)
-  // {
-  //   const embeddings = new HuggingFaceTransformersEmbeddings({
-  //     model: 'sentence-transformers/all-MiniLM-L6-v2'
-  //   });
-  //   const embedding = await embeddings.embedQuery(txt);
-  //   // console.log(embedding);
-  //   return embedding;
-  // }
-  // async function embedChunks(chunks: Array<string>)
-  // {
-  //   const batchSize = 50;
-  //   for(let i = 0; i < chunks.length; i += batchSize)
-  //   {
-  //     const batch = chunks.slice(i, i + batchSize);
-  //     const batchEmbeddings = await embedText(batch[0]);
-  //     console.log(batchEmbeddings);
-  //   }
-  // }
+  async function embedText(txt: string)
+  {
+    const embeddings = new OpenAIEmbeddings({
+      model: 'text-embedding-3-small',
+      apiKey: import.meta.env.VITE_OPEN_AI_API_KEY,
+    });
+    const embedding = await embeddings.embedQuery(txt);
+    return embedding;
+  }
+  async function embedChunks(chunks: Array<string>)
+  {
+    const embeddings = [];
+    for(let i = 0; i < chunks.length; i++ )
+    {
+      const batchEmbeddings = await embedText(chunks[i]);
+      embeddings.push(batchEmbeddings);
+    }
+    return embeddings;
+  }
   useEffect(()=>{
     async function run()
     {
       console.log(fileInTxt);
       const chunks = await chunkText(fileInTxt);
-      console.log(chunks);
-      // await embedChunks(chunks);
+      await embedChunks(chunks);
     }
-    run();
+    if(fileInTxt)
+      run();
   }, [fileInTxt]);
   
 
