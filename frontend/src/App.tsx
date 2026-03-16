@@ -7,6 +7,8 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 function App() {
 
   const fileInput = useRef<HTMLInputElement>(null);
+  // const question = useRef<HTMLInputElement>(null);
+  const [question, setQuestion] = useState<string>("");
   const [fileInTxt, setFileInTxt] = useState<string>("");
   async function readFile()
   {
@@ -47,22 +49,60 @@ function App() {
     const embedding = await embeddings.embedQuery(txt);
     return embedding;
   }
-  async function embedChunks(chunks: Array<string>)
+  async function embedChunks(chunks: string[])
   {
     const embeddings = [];
     for(let i = 0; i < chunks.length; i++ )
     {
       const batchEmbeddings = await embedText(chunks[i]);
+      // embeddings.push({
+      //   content: chunks[i],
+      //   embedding: batchEmbeddings
+      // });
       embeddings.push(batchEmbeddings);
     }
     return embeddings;
+  }
+  function cosineSimilarity(vecA: number[], vecB: number[])
+  {
+    if( vecA.length !== vecB.length )
+    {
+      throw new Error('Vectors must be of equal length');
+    }
+
+    let dotProduct = 0;
+    for(let i = 0; i < vecA.length; i++)
+      dotProduct += vecA[i] * vecB[i];
+
+    const magnitudeA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
+    const magnitudeB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+    
+    if(magnitudeA == 0 || magnitudeB == 0)
+      return 0;
+
+    return dotProduct / (magnitudeA * magnitudeB);
+  }
+  function similarityFunction(questionEmbedding: number[], embeddedChunks: Array<number[]>, chunks: string[], topN = 3)
+  {
+    const similarities = embeddedChunks.map((chunk, index) => ({
+      content: chunks[index],
+      similarity: cosineSimilarity(questionEmbedding, chunk),
+    }))
+
+    similarities.sort((a,b) => b.similarity - a.similarity);
+    return similarities.slice(0, topN);
   }
   useEffect(()=>{
     async function run()
     {
       console.log(fileInTxt);
       const chunks = await chunkText(fileInTxt);
-      await embedChunks(chunks);
+      const embeddedChunks = await embedChunks(chunks);
+      const embeddedQuestion = await embedText(question);
+      const similarChunks = similarityFunction(embeddedQuestion, embeddedChunks, chunks, 2);  //an array with each index having a json: {content, similarity}
+      similarChunks.forEach(e=>{
+        console.log(e.content);
+      })
     }
     if(fileInTxt)
       run();
@@ -75,8 +115,10 @@ function App() {
       justifyContent: 'center',
       alignItems: 'center',
       marginTop: '30%',
+      flexDirection: 'column',
     }}>
       <input type='file' name='document' id='doc' ref={fileInput} />
+      <input type='text' name='question' value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Enter text" />
       <button onClick={readFile}>Submit</button>
     </div>
   )
