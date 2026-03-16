@@ -6,6 +6,12 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const OpenAI = require("openai");
+const nova = new OpenAI({
+    apiKey: process.env.NOVA_AI_API_KEY,
+    baseURL: 'https://api.nova.amazon.com/v1',
+});
+
 const admin_uri = process.env.admin_connection_string;
 const client = new MongoClient(admin_uri, {
   serverApi: {
@@ -247,6 +253,60 @@ app.delete("/api/bot/:id", async (req, res)=>{
         res.sendStatus(500);
     } finally {
         client.close();
+    }
+})
+ 
+
+app.post("/api/chat", async (req, res)=>{
+    try{
+        // validation
+        if( !req.body.chat )
+        {
+            console.log("Error. No chat included in request");
+            res.sendStatus(400);
+            return;
+        }
+
+        const chatArrLength = req.body.chat.length;
+        if( chatArrLength <= 0 )
+        {
+            console.log("Invalid chat");
+            res.sendStatus(400);
+            return;
+        }
+
+        const question = req.body.chat[ chatArrLength - 1 ];
+        if( typeof question !== 'string' )
+        {
+            console.log("Body in invalid format");
+            res.sendStatus(400);
+            return;
+        }
+
+
+        // nova
+        const completion = await nova.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a helpful assistant. Don't format text with md styling. Always give a response of maximum 2 sentences."
+                },
+                {
+                    role: "user",
+                    content: question
+                }
+            ],
+            model: "nova-2-lite-v1",
+        });
+        // console.log(completion.choices[0].message.content);
+
+
+        // send
+        res.send(completion);
+
+    } catch (err){
+        console.error(err);
+        res.sendStatus(500);
     }
 })
 

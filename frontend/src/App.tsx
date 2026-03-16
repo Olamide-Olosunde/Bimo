@@ -109,6 +109,7 @@ function App() {
   }, [fileInTxt]);
   
 
+  const [response, setResponse] = useState<string>("");
   return (
     <div style={{
       display: "flex",
@@ -119,6 +120,7 @@ function App() {
     }}>
       <input type='file' name='document' id='doc' ref={fileInput} />
       <input type='text' name='question' value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Enter text" />
+      <p>{response}</p>
       <button onClick={readFile}>Submit</button>
     </div>
   )
