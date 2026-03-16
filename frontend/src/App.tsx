@@ -6,6 +6,28 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 
 function App() {
 
+  async function askNova(bodyToSend: string)
+  {
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({"chat": bodyToSend})
+    };
+
+    fetch("http://localhost:3000/api/chat", requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        // console.log(result);
+        // return result;
+        setResponse(result.choices[0].message.content);
+      })
+      .catch((error) => console.error(error))
+      .finally(()=>{
+        setLoading(false);
+      });
+  }
   const fileInput = useRef<HTMLInputElement>(null);
   // const question = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState<string>("");
@@ -95,14 +117,17 @@ function App() {
   useEffect(()=>{
     async function run()
     {
-      console.log(fileInTxt);
+      // console.log(fileInTxt);
       const chunks = await chunkText(fileInTxt);
       const embeddedChunks = await embedChunks(chunks);
       const embeddedQuestion = await embedText(question);
       const similarChunks = similarityFunction(embeddedQuestion, embeddedChunks, chunks, 2);  //an array with each index having a json: {content, similarity}
+      let prompt = question;
       similarChunks.forEach(e=>{
-        console.log(e.content);
+        // console.log(e.content);
+        prompt += `\n\n${e.content}`;
       })
+      askNova(prompt);
     }
     if(fileInTxt)
       run();
@@ -110,6 +135,7 @@ function App() {
   
 
   const [response, setResponse] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   return (
     <div style={{
       display: "flex",
@@ -120,8 +146,11 @@ function App() {
     }}>
       <input type='file' name='document' id='doc' ref={fileInput} />
       <input type='text' name='question' value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Enter text" />
-      <p>{response}</p>
-      <button onClick={readFile}>Submit</button>
+      <p>{loading ? 'loading...' : response}</p>
+      <button onClick={()=>{
+        setLoading(true);
+        readFile();
+      }}>Submit</button>
     </div>
   )
 }

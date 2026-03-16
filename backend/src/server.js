@@ -22,7 +22,7 @@ const client = new MongoClient(admin_uri, {
 });
 
 const corsOptions = {
-    origin: ['*'], // for now
+    origin: ['http://localhost:5173', 'http://localhost:8080'], // dev & prod respectively
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type']
 };
@@ -266,16 +266,7 @@ app.post("/api/chat", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
-
-        const chatArrLength = req.body.chat.length;
-        if( chatArrLength <= 0 )
-        {
-            console.log("Invalid chat");
-            res.sendStatus(400);
-            return;
-        }
-
-        const question = req.body.chat[ chatArrLength - 1 ];
+        const question = req.body.chat;
         if( typeof question !== 'string' )
         {
             console.log("Body in invalid format");
@@ -285,11 +276,12 @@ app.post("/api/chat", async (req, res)=>{
 
 
         // nova
+        console.log(question)
         const completion = await nova.chat.completions.create({
             messages: [
                 {
                     role: "system",
-                    content: "You are a helpful assistant. Don't format text with md styling. Always give a response of maximum 2 sentences."
+                    content: "You are a helpful assistant. Don't format text with md styling. Always give a response of maximum 2 sentences. Only reach 2 if NEEDED. When ever you're asked to generate a file name, wrap the name of the file in quotation marks."
                 },
                 {
                     role: "user",
@@ -303,6 +295,15 @@ app.post("/api/chat", async (req, res)=>{
 
         // send
         res.send(completion);
+
+    } catch (err){
+        console.error(err);
+        res.sendStatus(500);
+    }
+})
+
+app.post("/api/docs", async (req, res) => {
+    try{
 
     } catch (err){
         console.error(err);
