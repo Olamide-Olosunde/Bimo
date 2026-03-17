@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const { OpenAIEmbeddings } = require("@langchain/openai");
+const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -28,7 +30,7 @@ const corsOptions = {
 };
 
 const app = express();
-app.use(express.json());
+app.use(express.json({limit: '100mb'}));
 app.use(cors(corsOptions));
 
 function generateRandomString(){
@@ -40,47 +42,92 @@ function generateRandomString(){
 app.post("/api/bot", async (req, res)=>{
     try{
         // validation
-        if( !req.body.bot_name || !req.body.embeddings )
+        if( !req.body.doc )
         {
-            console.log("No bot name or embeddings")
+            console.log("Invalid request");
             res.sendStatus(400);
             return;
         }
-        if( typeof req.body.bot_name !== 'string' ){
-            console.log("Bot name has to be a string")
-            res.sendStatus(400);
-            return;
-        }
-        if( Array.isArray(req.body.embeddings) )//|| req.body.embeddings.length != 1536 )
+        if( typeof req.body.doc !== "string" )
         {
-            if(typeof req.body.embeddings[0] !== 'number')
-            {
-                console.log("Embeddings have to be float")
-                res.sendStatus(400);
-                return;
-            }
-        } else {
-            console.log("Embeddings have to be an array")
+            console.log("Doc has to be in string");
             res.sendStatus(400);
             return;
         }
 
 
-        // mongo db
-        gen_id = generateRandomString();
-        await client.connect();
+        // func
+        async function embedText(txt)
+        {
+            const embeddings = new OpenAIEmbeddings({
+                model: 'text-embedding-3-small',
+                apiKey: process.env.OPEN_AI_API_KEY,
+            });
+            const embedding = await embeddings.embedQuery(txt);
+            return embedding;
+        }
 
-        const collection = client.db("users").collection('bots_for_mvp');
-        await collection.insertOne({
-            bot_id: gen_id,
-            bot_name: req.body.bot_name,
-            embeddings: req.body.embeddings,
-            chat: []
+
+        // RAG
+        const splitter = new RecursiveCharacterTextSplitter({
+            chunkSize: 512,
+            chunkOverlap: 64,
         });
+        await splitter.splitText(req.body.doc)
+        .then(async (chunks)=>{
+            // embed
+            const embeddings = [];
+            for(let i = 0; i < chunks.length; i++ )
+            {
+                const batchEmbeddings = await embedText(chunks[i]);
+                embeddings.push(batchEmbeddings);
+            }
+            return {chunks, embeddings};
+        })
+        .then(async (chunksAndEmbeddings)=>{
+            // name -- attach que & first two chunks if there's up to two chunks available
+            const chunks = chunksAndEmbeddings.chunks;
+            const embeddings = chunksAndEmbeddings.embeddings;
+            const prompt = "Generate 1 human name according to this\n\n" + chunks[0] + ((chunks.length > 1) ? chunks[1] : "");
+            return await nova.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are a helpful assistant. Only give a one-word answer. No punctuation marks."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                model: "nova-2-lite-v1",
+            })
+            .then((ans)=>{
+                // get name and return
+                const name = ans.choices[0].message.content;
+                return {name, chunks, embeddings};
+            })
+        })
+        .then(async (response)=>{
+            // mongo db
+            gen_id = generateRandomString();
+            await client.connect();
 
+            const collection = client.db("users").collection('bots_for_mvp');
+            await collection.insertOne({
+                bot_id: gen_id,
+                bot_name: response.name,
+                chunks: response.chunks,
+                embeddings: response.embeddings,
+                chat: []
+            });
 
-        // send
-        res.send(gen_id); //to be stored in localStorage for mvp
+            return gen_id;
+        })
+        .then((gen_id)=>{
+            // send
+            res.send(gen_id); //to be stored in localStorage for mvp
+        })
 
     } catch (err){
         console.error(err);
@@ -302,14 +349,14 @@ app.post("/api/chat", async (req, res)=>{
     }
 })
 
-app.post("/api/docs", async (req, res) => {
-    try{
+// app.post("/api/docs", async (req, res) => {
+//     try{
 
-    } catch (err){
-        console.error(err);
-        res.sendStatus(500);
-    }
-})
+//     } catch (err){
+//         console.error(err);
+//         res.sendStatus(500);
+//     }
+// })
 
 
 

@@ -1,37 +1,24 @@
 import { useEffect, useRef, useState } from "react"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai";
 
 
 function App() {
 
-  async function askNova(bodyToSend: string)
+  async function sendDocToBackend(doc: string)  // might change to arr if we taking more than 1 doc
   {
-    const requestOptions = {
+    fetch("http://localhost:3000/api/doc", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({"chat": bodyToSend})
-    };
-
-    fetch("http://localhost:3000/api/chat", requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        // console.log(result);
-        // return result;
-        setResponse(result.choices[0].message.content);
-      })
-      .catch((error) => console.error(error))
-      .finally(()=>{
-        setLoading(false);
-      });
+      body: JSON.stringify(doc),
+    });
   }
   const fileInput = useRef<HTMLInputElement>(null);
   // const question = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState<string>("");
   const [fileInTxt, setFileInTxt] = useState<string>("");
+  // const [botName, setBotName] = useState<string>("");
   async function readFile()
   {
     const file = fileInput.current?.files?.[0];
@@ -51,39 +38,6 @@ function App() {
         console.log(docs);
       }
     }
-  }
-  async function chunkText(txt: string)
-  {
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 512,
-      chunkOverlap: 64,
-    });
-    const chunks = await splitter.splitText(txt);
-    // console.log(chunks);
-    return chunks;
-  }
-  async function embedText(txt: string)
-  {
-    const embeddings = new OpenAIEmbeddings({
-      model: 'text-embedding-3-small',
-      apiKey: import.meta.env.VITE_OPEN_AI_API_KEY,
-    });
-    const embedding = await embeddings.embedQuery(txt);
-    return embedding;
-  }
-  async function embedChunks(chunks: string[])
-  {
-    const embeddings = [];
-    for(let i = 0; i < chunks.length; i++ )
-    {
-      const batchEmbeddings = await embedText(chunks[i]);
-      // embeddings.push({
-      //   content: chunks[i],
-      //   embedding: batchEmbeddings
-      // });
-      embeddings.push(batchEmbeddings);
-    }
-    return embeddings;
   }
   function cosineSimilarity(vecA: number[], vecB: number[])
   {
@@ -114,20 +68,54 @@ function App() {
     similarities.sort((a,b) => b.similarity - a.similarity);
     return similarities.slice(0, topN);
   }
+  //when user inserts file
   useEffect(()=>{
     async function run()
     {
-      // console.log(fileInTxt);
-      const chunks = await chunkText(fileInTxt);
-      const embeddedChunks = await embedChunks(chunks);
-      const embeddedQuestion = await embedText(question);
-      const similarChunks = similarityFunction(embeddedQuestion, embeddedChunks, chunks, 2);  //an array with each index having a json: {content, similarity}
-      let prompt = question;
-      similarChunks.forEach(e=>{
-        // console.log(e.content);
-        prompt += `\n\n${e.content}`;
-      })
-      askNova(prompt);
+      sendDocToBackend(fileInTxt);
+      // // console.log(fileInTxt);
+      // const chunks = await chunkText(fileInTxt);
+      // const embeddedChunks = await embedChunks(chunks);
+      // const embeddedQuestion = await embedText(question);
+      // const similarChunks = similarityFunction(embeddedQuestion, embeddedChunks, chunks, 2);  //an array with each index having a json: {content, similarity}
+      // let prompt = "Generate a file name for this:";
+      // similarChunks.forEach(e=>{
+      //   // console.log(e.content);
+      //   prompt += `\n\n${e.content}`;
+      // })
+      // // askNova(prompt)
+      // // .then( async ()=>{
+      
+      
+      // // const requestOptions = {
+      // //   method: "POST",
+      // //   headers: {
+      // //     "Content-Type": "application/json"
+      // //   },
+      // //   body: JSON.stringify({"chat": bodyToSend})
+      // // };
+
+      // // fetch("http://localhost:3000/api/chat", requestOptions)
+      // //   .then((response) => response.json())
+      // //   .then((result) => {
+      // //     // console.log(result);
+      // //     setResponse(result.choices[0].message.content);
+      // //     return result;
+      // //   })
+      // //   .catch((error) => console.error(error))
+      // //   .finally(()=>{
+      // //     setLoading(false);
+      // //   });
+      // //   const botName = response.split('"')[1]
+
+      // //   // bot creation
+      // //   createBot({
+      // //     "bot_id": "",
+      // //     "bot_name": botName,
+      // //     "embeddings": embeddedChunks,
+      // //     "chat": []
+      // //   });
+      // // });
     }
     if(fileInTxt)
       run();
@@ -145,8 +133,8 @@ function App() {
       flexDirection: 'column',
     }}>
       <input type='file' name='document' id='doc' ref={fileInput} />
-      <input type='text' name='question' value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Enter text" />
-      <p>{loading ? 'loading...' : response}</p>
+      {/* <input type='text' name='question' value={question} onChange={(e)=>setQuestion(e.target.value)} placeholder="Enter text" />
+      <p>{loading ? 'loading...' : response}</p> */}
       <button onClick={()=>{
         setLoading(true);
         readFile();
