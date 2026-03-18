@@ -41,11 +41,11 @@ function generateRandomString(){
 }
 
 // create
-app.post("/api/bot", upload.single("doc"), async (req, res)=>{
+app.post("/api/bot", upload.single("file"), async (req, res)=>{
     try{
         console.log(typeof multer)
-        console.log(typeof req.doc)
-        console.log(req.doc);
+        console.log(typeof req.file)
+        console.log(req.file);
         // // validation
         // if( !req.body.doc )
         // {

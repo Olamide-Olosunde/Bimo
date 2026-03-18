@@ -2,6 +2,9 @@
 **/.env
 **/.env.*
 
+# pdf uploads -- if any
+backend/src/uploads/
+
 # node js
 **/node_modules
 

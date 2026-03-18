@@ -64,7 +64,7 @@ function MakeBot({ chat, setChat }: chat) {
         //send it to the backend
         // console.log(file);
         const formData = new FormData();
-        formData.append("doc", file);
+        formData.append("file", file);
         sendPDFToBackend(formData);
         // // const parse = new PDFParse();
         // const reader = new FileReader();
