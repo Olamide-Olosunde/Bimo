@@ -86,9 +86,9 @@ function MakeBot() {
           botName: botName
         }));
         localStorage.setItem('Bimo_bots', JSON.stringify(bots));
-        //re-route to chat
-        chatPopUp()
       }
+      //re-route to chat
+      chatPopUp();
     }
   }, [botId, botName]);
   
