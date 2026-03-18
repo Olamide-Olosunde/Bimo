@@ -122,11 +122,13 @@ app.post("/api/bot", async (req, res)=>{
                 chat: []
             });
 
-            return gen_id;
+            const id = gen_id;
+            const name = response.name;
+            return {id, name};
         })
-        .then((gen_id)=>{
+        .then((toSend)=>{
             // send
-            res.send(gen_id); //to be stored in localStorage for mvp
+            res.send(toSend); //to be stored in localStorage for mvp
         })
 
     } catch (err){
@@ -321,9 +323,40 @@ app.post("/api/chat", async (req, res)=>{
             return;
         }
 
+        // Similarity function
+        function cosineSimilarity(vecA, vecB)
+        {
+            if( vecA.length !== vecB.length )
+            {
+                throw new Error('Vectors must be of equal length');
+            }
+
+            let dotProduct = 0;
+            for(let i = 0; i < vecA.length; i++)
+            dotProduct += vecA[i] * vecB[i];
+
+            const magnitudeA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
+            const magnitudeB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+            
+            if(magnitudeA == 0 || magnitudeB == 0)
+            return 0;
+
+            return dotProduct / (magnitudeA * magnitudeB);
+        }
+        function similarityFunction(questionEmbedding, embeddedChunks, chunks, topN = 3)
+        {
+            const similarities = embeddedChunks.map((chunk, index) => ({
+                content: chunks[index],
+                similarity: cosineSimilarity(questionEmbedding, chunk),
+            }))
+
+            similarities.sort((a,b) => b.similarity - a.similarity);
+            return similarities.slice(0, topN);
+        }
+        similarityFunction();
+
 
         // nova
-        console.log(question)
         const completion = await nova.chat.completions.create({
             messages: [
                 {
@@ -348,15 +381,6 @@ app.post("/api/chat", async (req, res)=>{
         res.sendStatus(500);
     }
 })
-
-// app.post("/api/docs", async (req, res) => {
-//     try{
-
-//     } catch (err){
-//         console.error(err);
-//         res.sendStatus(500);
-//     }
-// })
 
 
 
