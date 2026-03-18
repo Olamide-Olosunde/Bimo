@@ -52,12 +52,6 @@ const Chat = (id: props) => {
       return result.json();
     });
   }
-  // useEffect(()=>{
-  //   if(bot)
-  //   {
-  //     askNova(bot);
-  //   }
-  // }, [bot]);
 
   return (
     bot ?

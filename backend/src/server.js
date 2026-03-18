@@ -107,7 +107,7 @@ app.post("/api/bot", async (req, res)=>{
                 const name = ans.choices[0].message.content;
                 return {name, chunks, embeddings};
             })
-        })
+        })// lowkey, might need to add a description... we'll see
         .then(async (response)=>{
             // mongo db
             gen_id = generateRandomString();

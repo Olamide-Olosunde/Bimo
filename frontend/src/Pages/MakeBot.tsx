@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import Chat from './Chat';
 
+interface eachBot{  // each bot in local storage
+  botId: string,
+  botName: string
+}
 
 function MakeBot() {
 
@@ -25,6 +29,7 @@ function MakeBot() {
   const [botId, setBotId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [chat, setChat] = useState<boolean>(false);
+  const [bots, setBots] = useState<Array<eachBot>>();
   async function readFile()
   {
     const file = fileInput.current?.files?.[0];
@@ -91,24 +96,54 @@ function MakeBot() {
       chatPopUp();
     }
   }, [botId, botName]);
-  
+
+  function retrieveBots()
+  {
+    if( localStorage.getItem('Bimo_bots') !== null )
+    {
+      const bimo_bots = localStorage.getItem('Bimo_bots');
+      const retrieved_bots = JSON.parse(bimo_bots ? bimo_bots : "");
+      retrieved_bots.forEach((bot: string, i: number)=>{
+        retrieved_bots[i] = JSON.parse(bot);
+      })
+      setBots(retrieved_bots);
+      console.log(retrieved_bots[0].botId);
+    } else 
+    {
+      console.log("No bots stored");
+    }
+  }
+  useEffect(()=>{
+    retrieveBots();
+  }, []);
 
   return (
     chat ? 
       <Chat id={botId} />
     :
       <div style={{
-        display: "flex",
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: '30%',
-        flexDirection: 'column',
+        display: 'flex',
+        flexDirection: 'row',
       }}>
-        <input type='file' name='document' id='doc' ref={fileInput} />
-        <button onClick={()=>{
-          setLoading(true);
-          readFile();
-        }} disabled={loading}>Submit</button>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {bots?.map((bot, key)=><span key={key}>{bot.botName}</span>)}
+        </div>
+        <div style={{
+          display: "flex",
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '30%',
+          flexDirection: 'column',
+        }}>
+          <input type='file' name='document' id='doc' ref={fileInput} />
+          <button onClick={()=>{
+            setLoading(true);
+            readFile();
+          }} disabled={loading}>Submit</button>
+        </div>
       </div>
   )
 }
