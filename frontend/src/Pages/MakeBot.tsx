@@ -7,7 +7,12 @@ interface eachBot{  // each bot in local storage
   botName: string
 }
 
-function MakeBot() {
+interface chat{
+  chat: boolean,
+  setChat: React.Dispatch<React.SetStateAction<boolean>>,
+}
+
+function MakeBot({ chat, setChat }: chat) {
 
   async function sendToBackend(document: string)  // might change to arr if we taking more than 1 doc
   {
@@ -28,7 +33,7 @@ function MakeBot() {
   const [botName, setBotName] = useState<string>("");
   const [botId, setBotId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [chat, setChat] = useState<boolean>(false);
+  // const [chat, setChat] = useState<boolean>(false); // will have to be in context -- so Chat can set it to false
   const [bots, setBots] = useState<Array<eachBot>>();
   async function readFile()
   {
@@ -95,7 +100,7 @@ function MakeBot() {
       //re-route to chat
       chatPopUp();
     }
-  }, [botId, botName]);
+  }, [botName]); // not dependent on botId cause that changes frequently -- when user clicks to chat with their bots
 
   function retrieveBots()
   {
@@ -129,7 +134,10 @@ function MakeBot() {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          {bots?.map((bot, key)=><span key={key}>{bot.botName}</span>)}
+          {bots?.map((bot, key)=><span onClick={()=>{
+            setBotId(bot.botId);
+            chatPopUp();
+          }} key={key}>{bot.botName}</span>)}
         </div>
         <div style={{
           display: "flex",
