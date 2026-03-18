@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import Chat from './Chat';
 
 interface eachBot{  // each bot in local storage
@@ -27,6 +26,21 @@ function MakeBot({ chat, setChat }: chat) {
       return response.json();
     });
   }
+  async function sendPDFToBackend(pdf: FormData)
+  {
+    console.log(pdf);
+    return await fetch("http://localhost:3000/api/bot", {
+      method: "POST",
+      body: pdf,
+    })
+    .then((response)=>{
+      setLoading(false);
+      return response.json();
+    });
+  }
+  function scream(msg: string){
+    console.log(msg); // will be toaster
+  }
   const fileInput = useRef<HTMLInputElement>(null);
   const [fileInTxt, setFileInTxt] = useState<string>("");
   const [botName, setBotName] = useState<string>("");
@@ -47,9 +61,24 @@ function MakeBot({ chat, setChat }: chat) {
         }
         reader.readAsText(file);
       } else if( file.name.split('.')[1] === 'pdf' ) {
-        const loader = new PDFLoader(file);
-        const docs = await loader.load();
-        console.log(docs);
+        //send it to the backend
+        // console.log(file);
+        const formData = new FormData();
+        formData.append("doc", file);
+        sendPDFToBackend(formData);
+        // // const parse = new PDFParse();
+        // const reader = new FileReader();
+        // reader.onload = (async (e)=>{
+        //   console.log(e);
+        //   // if(arrBuffer && typeof arrBuffer === 'string')
+        //   // {
+        //   //   const pdfData = new PDFParse(arrBuffer);
+        //   //   await pdfData.getText()
+        //   //   .then((result)=>console.log(result));
+        //   // }
+        // })
+      } else {
+        scream("Invalid document. Please, upload a document of one of the following types: pdf, csv, txt, json.");
       }
     }
   }
@@ -122,7 +151,7 @@ function MakeBot({ chat, setChat }: chat) {
 
   return (
     chat ? 
-      <Chat id={botId} name={botName} chat={chat} setChat={setChat} />
+      <Chat id={botId} chat={chat} setChat={setChat} />
     :
       <div style={{
         display: 'flex',
@@ -149,6 +178,14 @@ function MakeBot({ chat, setChat }: chat) {
             setLoading(true);
             readFile();
           }} disabled={loading}>Submit</button>
+          <div style={{
+            display: 'flex',
+            position: 'absolute',
+            bottom: 0,
+          }}>
+            <button>Feedback</button>{/* will probably be a logo */}
+            <textarea />{/* will adopt same look as small-size chatbot */}
+          </div>
         </div>
       </div>
   )

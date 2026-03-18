@@ -3,10 +3,9 @@ import Loading from './Loading';
 import BotThinking from './BotThinking';
 
 interface props{
-  id: string,
-  name: string,
-  chat: boolean,
-  setChat: React.Dispatch<React.SetStateAction<boolean>>,
+  id: string;
+  chat: boolean;
+  setChat: React.Dispatch<React.SetStateAction<boolean>>
 }
 interface botFormat{
   bot_id: string,
@@ -80,7 +79,7 @@ const Chat = ({id, chat, setChat}: props) => {
           textAlign: 'center',
         }}>{bot.bot_name}</h2>
         <input name='question' placeholder="Enter text" value={question} onChange={(e)=>setQuestion(e.target.value)} />
-        {thinking ? <p>{response}</p> : <BotThinking />}
+        {thinking ? <BotThinking /> : <p>{response}</p>}
         <button onClick={()=>{
           // push user question to bot.chat
           bot.chat.push(question);

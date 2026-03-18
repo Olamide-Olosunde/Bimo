@@ -4,6 +4,8 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const { OpenAIEmbeddings } = require("@langchain/openai");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
+const multer = require("multer");
+const upload = multer({ dest: 'uploads/' });
 
 const dotenv = require('dotenv');
 dotenv.config();
@@ -39,23 +41,34 @@ function generateRandomString(){
 }
 
 // create
-app.post("/api/bot", async (req, res)=>{
+app.post("/api/bot", upload.single("doc"), async (req, res)=>{
     try{
-        // validation
-        if( !req.body.doc )
-        {
-            console.log("Invalid request");
-            res.sendStatus(400);
-            return;
-        }
-        if( typeof req.body.doc !== "string" )
-        {
-            console.log("Doc has to be in string");
-            res.sendStatus(400);
-            return;
-        }
+        console.log(typeof multer)
+        console.log(typeof req.doc)
+        console.log(req.doc);
+        // // validation
+        // if( !req.body.doc )
+        // {
+        //     console.log("Invalid request");
+        //     res.sendStatus(400);
+        //     return;
+        // }
+        // if( (typeof req.body.doc !== "string") && (typeof req.body.doc !== "file") )
+        // {
+        //     console.log("Doc has to be in string");
+        //     res.sendStatus(400);
+        //     return;
+        // }
+        // const doc = () => {
+        //     if(typeof req.body.doc === "string")
+        //         return req.body.doc;
+        //     else {
+        //         return req.body.doc; // only temporary
+        //     }
+        // }
+        // console.log(doc);
 
-
+/*
         // func
         async function embedText(txt)
         {
@@ -130,6 +143,8 @@ app.post("/api/bot", async (req, res)=>{
             // send
             res.send(toSend); //to be stored in localStorage for mvp
         })
+*/
+    res.send("hi");
 
     } catch (err){
         console.error(err);
