@@ -3,7 +3,10 @@ import Loading from './Loading';
 import BotThinking from './BotThinking';
 
 interface props{
-  id: string;
+  id: string,
+  name: string,
+  chat: boolean,
+  setChat: React.Dispatch<React.SetStateAction<boolean>>,
 }
 interface botFormat{
   bot_id: string,
@@ -13,7 +16,7 @@ interface botFormat{
   chat: string[]
 }
 
-const Chat = (id: props) => {
+const Chat = ({id, chat, setChat}: props) => {
   const [question, setQuestion] = useState<string>("");
   const [response, setResponse] = useState<string>("");
   const [bot, setBot] = useState<botFormat>();
@@ -22,7 +25,7 @@ const Chat = (id: props) => {
   // fetch bot from backend
   async function fetchBot()
   {
-    return await fetch(`http://localhost:3000/api/bot/${id.id}`, {
+    return await fetch(`http://localhost:3000/api/bot/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -54,9 +57,28 @@ const Chat = (id: props) => {
   }
 
   return (
-    bot ?
-      <div>
-        <h2>{bot.bot_name}</h2>
+    (chat && bot) ?
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+        }}>
+          <button>small</button>
+          <button>corner</button>
+          <button>Fullscreen</button>
+          <button onClick={()=>{
+            setChat(false);
+          }}>Close x</button>
+        </div>
+        <h2 style={{
+          display: 'flex',
+          justifyContent: 'center',
+          textAlign: 'center',
+        }}>{bot.bot_name}</h2>
         <input name='question' placeholder="Enter text" value={question} onChange={(e)=>setQuestion(e.target.value)} />
         {thinking ? <p>{response}</p> : <BotThinking />}
         <button onClick={()=>{

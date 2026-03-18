@@ -6,7 +6,6 @@ interface eachBot{  // each bot in local storage
   botId: string,
   botName: string
 }
-
 interface chat{
   chat: boolean,
   setChat: React.Dispatch<React.SetStateAction<boolean>>,
@@ -33,7 +32,6 @@ function MakeBot({ chat, setChat }: chat) {
   const [botName, setBotName] = useState<string>("");
   const [botId, setBotId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  // const [chat, setChat] = useState<boolean>(false); // will have to be in context -- so Chat can set it to false
   const [bots, setBots] = useState<Array<eachBot>>();
   async function readFile()
   {
@@ -112,7 +110,7 @@ function MakeBot({ chat, setChat }: chat) {
         retrieved_bots[i] = JSON.parse(bot);
       })
       setBots(retrieved_bots);
-      console.log(retrieved_bots[0].botId);
+      // console.log(retrieved_bots[0].botId);
     } else 
     {
       console.log("No bots stored");
@@ -124,7 +122,7 @@ function MakeBot({ chat, setChat }: chat) {
 
   return (
     chat ? 
-      <Chat id={botId} />
+      <Chat id={botId} name={botName} chat={chat} setChat={setChat} />
     :
       <div style={{
         display: 'flex',
