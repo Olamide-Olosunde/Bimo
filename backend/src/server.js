@@ -4,6 +4,8 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const { OpenAIEmbeddings } = require("@langchain/openai");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
+const { PDFParse } =  require('pdf-parse');
+
 const multer = require("multer");
 const upload = multer({ dest: 'uploads/' });
 
@@ -32,7 +34,7 @@ const corsOptions = {
 };
 
 const app = express();
-app.use(express.json({limit: '100mb'}));
+app.use(express.json({limit: '10000mb'}));
 app.use(cors(corsOptions));
 
 function generateRandomString(){
@@ -43,32 +45,35 @@ function generateRandomString(){
 // create
 app.post("/api/bot", upload.single("file"), async (req, res)=>{
     try{
-        console.log(typeof multer)
-        console.log(typeof req.file)
-        console.log(req.file);
-        // // validation
-        // if( !req.body.doc )
-        // {
-        //     console.log("Invalid request");
-        //     res.sendStatus(400);
-        //     return;
-        // }
-        // if( (typeof req.body.doc !== "string") && (typeof req.body.doc !== "file") )
-        // {
-        //     console.log("Doc has to be in string");
-        //     res.sendStatus(400);
-        //     return;
-        // }
-        // const doc = () => {
-        //     if(typeof req.body.doc === "string")
-        //         return req.body.doc;
-        //     else {
-        //         return req.body.doc; // only temporary
-        //     }
-        // }
-        // console.log(doc);
+        // validation
+        if( !req.body.doc && !req.file )
+        {
+            console.log("Invalid request");
+            res.sendStatus(400);
+            return;
+        }
+        if( (typeof req.body.doc !== "string") && (req.file.fieldname !== "file") )
+        {
+            console.log("Invalid file format");
+            res.sendStatus(400);
+            return;
+        }
+        async function getDoc(){
+            if(typeof req.body.doc === "string")
+                return req.body.doc;
+            else {
+                const parser = new PDFParse({ url: req.file.path });
+                return await parser.getText()
+                .then(result=> {
+                    // console.log(result.text);
+                    parser.destroy()
+                    return result.text;
+                })
+                .catch(err=>console.error(err));
+            }
+        }
 
-/*
+
         // func
         async function embedText(txt)
         {
@@ -86,7 +91,14 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             chunkSize: 512,
             chunkOverlap: 64,
         });
-        await splitter.splitText(req.body.doc)
+        await getDoc()
+        .then(async (doc)=>{
+            return await splitter.splitText(doc)
+            .then(result=>{
+                console.log("done chunking");
+                return result;
+            })
+        })
         .then(async (chunks)=>{
             // embed
             const embeddings = [];
@@ -95,6 +107,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
                 const batchEmbeddings = await embedText(chunks[i]);
                 embeddings.push(batchEmbeddings);
             }
+            console.log("done embedding");
             return {chunks, embeddings};
         })
         .then(async (chunksAndEmbeddings)=>{
@@ -118,6 +131,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             .then((ans)=>{
                 // get name and return
                 const name = ans.choices[0].message.content;
+                console.log("done generating name");
                 return {name, chunks, embeddings};
             })
         })// lowkey, might need to add a description... we'll see
@@ -137,14 +151,16 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
 
             const id = gen_id;
             const name = response.name;
+            console.log("done generating name");
             return {id, name};
         })
         .then((toSend)=>{
             // send
+            console.log("officially done");
             res.send(toSend); //to be stored in localStorage for mvp
         })
-*/
-    res.send("hi");
+        .catch(err=>console.error(err));
+
 
     } catch (err){
         console.error(err);

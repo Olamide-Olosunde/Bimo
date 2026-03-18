@@ -28,7 +28,6 @@ function MakeBot({ chat, setChat }: chat) {
   }
   async function sendPDFToBackend(pdf: FormData)
   {
-    console.log(pdf);
     return await fetch("http://localhost:3000/api/bot", {
       method: "POST",
       body: pdf,
@@ -61,22 +60,14 @@ function MakeBot({ chat, setChat }: chat) {
         }
         reader.readAsText(file);
       } else if( file.name.split('.')[1] === 'pdf' ) {
-        //send it to the backend
-        // console.log(file);
+        // send it to the backend
         const formData = new FormData();
         formData.append("file", file);
-        sendPDFToBackend(formData);
-        // // const parse = new PDFParse();
-        // const reader = new FileReader();
-        // reader.onload = (async (e)=>{
-        //   console.log(e);
-        //   // if(arrBuffer && typeof arrBuffer === 'string')
-        //   // {
-        //   //   const pdfData = new PDFParse(arrBuffer);
-        //   //   await pdfData.getText()
-        //   //   .then((result)=>console.log(result));
-        //   // }
-        // })
+        await sendPDFToBackend(formData) // gonna send a bot back
+        .then((bot)=>{
+          setBotId(bot.id);
+          setBotName(bot.name);
+        });
       } else {
         scream("Invalid document. Please, upload a document of one of the following types: pdf, csv, txt, json.");
       }
@@ -177,7 +168,7 @@ function MakeBot({ chat, setChat }: chat) {
           <button onClick={()=>{
             setLoading(true);
             readFile();
-          }} disabled={loading}>Submit</button>
+          }} disabled={loading}>Create bot</button>
           <div style={{
             display: 'flex',
             position: 'absolute',
