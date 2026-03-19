@@ -104,7 +104,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
         .then(async (doc)=>{
             return await splitter.splitText(doc)
             .then(result=>{
-                console.log("done chunking");
+                // console.log("done chunking");
                 return result;
             })
         })
@@ -115,15 +115,15 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
                 const embeddings = [];
                 for(let i = 0; i < chunks.length; i++ )
                 {
-                    const batchEmbeddings = await embedText(chunks);
+                    const batchEmbeddings = await embedText(chunks[i]);
                     embeddings.push(batchEmbeddings);
                 }
-                console.log("done embedding");
+                // console.log("done embedding");
                 return {chunks, embeddings};
             }
             else {
                 const batchEmbeddings = await embedDoc(chunks);
-                console.log("done embedding");
+                // console.log("done embedding");
                 return {chunks, batchEmbeddings};
             }
         })
@@ -148,7 +148,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             .then((ans)=>{
                 // get name and return
                 const name = ans.choices[0].message.content;
-                console.log("done generating name");
+                // console.log("done generating name");
                 return {name, chunks, embeddings};
             })
         })// lowkey, might need to add a description... we'll see
@@ -168,12 +168,12 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
 
             const id = gen_id;
             const name = response.name;
-            console.log("done generating name");
+            // console.log("done generating name");
             return {id, name};
         })
         .then((toSend)=>{
             // send
-            console.log("officially done");
+            // console.log("officially done");
             res.send(toSend); //to be stored in localStorage for mvp
         })
         .catch(err=>console.error(err));
@@ -277,6 +277,33 @@ app.put("/api/bot/:id", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
+        if( 
+            (typeof req.body.bot_name) !== "string" ||
+            (typeof req.body.chunks) !== "object" ||
+            (typeof req.body.embeddings) !== "object" ||
+            (typeof req.body.chat) !== "object"
+        )
+        {
+            console.log("Invalid bot format");
+            res.sendStatus(400);
+            return;
+        }
+        if( 
+            (typeof req.body.chunks[0]) !== "string" ||
+            (typeof req.body.embeddings[0]) !== "object" ||
+            (typeof req.body.chat[0]) !== "string"
+        )
+        {
+            console.log("Invalid bot format");
+            res.sendStatus(400);
+            return;
+        }
+        if( typeof req.body.embeddings[0][0] !== "number" )
+        {
+            console.log("Invalid bot format");
+            res.sendStatus(400);
+            return;
+        }
 
 
         // mongo db
@@ -285,7 +312,9 @@ app.put("/api/bot/:id", async (req, res)=>{
 
         await collection.updateOne({ bot_id: req.body.bot_id }, {$set: {
             bot_name: req.body.bot_name,
-            chat: req.body.chat
+            chunks: req.body.chunks,
+            embeddings: req.body.embeddings,
+            chat: req.body.chat,
         }});
         const bot = await collection.findOne({bot_id: req.body.bot_id});
 

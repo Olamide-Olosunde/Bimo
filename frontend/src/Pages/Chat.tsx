@@ -35,6 +35,21 @@ const Chat = ({id, chat, setChat}: props) => {
     })
     .catch(err=>console.error(err));
   }
+  async function emptyChat(bot: botFormat)
+  {
+    bot.chat.length = 0;
+    return await fetch(`http://localhost:3000/api/bot/${bot.bot_id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(bot),
+    })
+    .then(result=>{
+      return result;
+    })
+    
+  }
   useEffect(()=>{
     fetchBot()
     .then((bot)=>setBot(bot));
@@ -64,14 +79,22 @@ const Chat = ({id, chat, setChat}: props) => {
         <div style={{
           display: 'flex',
           flexDirection: 'row',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
         }}>
-          <button>small</button>
-          <button>corner</button>
-          <button>Fullscreen</button>
           <button onClick={()=>{
-            setChat(false);
-          }}>Close x</button>
+            if( bot.chat.length > 0 )
+              emptyChat(bot);
+            else
+              window.alert("Chat is cleared.");
+          }}>Clear Chat</button>
+          <div>
+            <button>small</button>
+            <button>corner</button>
+            <button>Fullscreen</button>
+            <button onClick={()=>{
+              setChat(false);
+            }}>Close x</button>
+          </div>
         </div>
         <h2 style={{
           display: 'flex',
