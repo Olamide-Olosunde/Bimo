@@ -84,6 +84,15 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             const embedding = await embeddings.embedQuery(txt);
             return embedding;
         }
+        async function embedDoc(doc)
+        {
+            const embeddings = new OpenAIEmbeddings({
+                model: 'text-embedding-3-small',
+                apiKey: process.env.OPEN_AI_API_KEY,
+            });
+            const embedding = await embeddings.embedDocuments(doc);
+            return embedding;
+        }
 
 
         // RAG
@@ -101,14 +110,22 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
         })
         .then(async (chunks)=>{
             // embed
-            const embeddings = [];
-            for(let i = 0; i < chunks.length; i++ )
+            if(chunks.length < 7)
             {
-                const batchEmbeddings = await embedText(chunks[i]);
-                embeddings.push(batchEmbeddings);
+                const embeddings = [];
+                for(let i = 0; i < chunks.length; i++ )
+                {
+                    const batchEmbeddings = await embedText(chunks);
+                    embeddings.push(batchEmbeddings);
+                }
+                console.log("done embedding");
+                return {chunks, embeddings};
             }
-            console.log("done embedding");
-            return {chunks, embeddings};
+            else {
+                const batchEmbeddings = await embedDoc(chunks);
+                console.log("done embedding");
+                return {chunks, batchEmbeddings};
+            }
         })
         .then(async (chunksAndEmbeddings)=>{
             // name -- attach que & first two chunks if there's up to two chunks available
