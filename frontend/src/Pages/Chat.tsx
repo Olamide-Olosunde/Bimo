@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import Loading from './Loading';
-import BotThinking from './BotThinking';
+import Loading from '../Components/Loading';
+import BotThinking from '../Components/BotThinking';
 
 interface props{
   id: string;
