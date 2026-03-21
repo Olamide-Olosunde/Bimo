@@ -1,7 +1,8 @@
+import { Spinner } from "../Components/ui/spinner";
 
-const Loading = () => {
+const Loading = ({size = 4, className}: {size?: number, className?: string}) => {
   return (
-    <p>Loading...</p>
+    <Spinner className={`size-${size} ${className}`} />
   )
 }
 

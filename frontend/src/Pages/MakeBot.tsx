@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../Components/ui/alert-dialog"
+import { Spinner } from "../Components/ui/spinner";
 
 interface eachBot{  // each bot in local storage
   botId: string,
@@ -66,9 +67,11 @@ function MakeBot({ chat, setChat }: chat) {
   const [loading, setLoading] = useState<boolean>(false);
   const [bots, setBots] = useState<Array<eachBot>>();
   const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
+  const [feedbackVisible, setFeedbackVisible] = useState<boolean>(true);
   const [feedback, setFeedback] = useState<string>("");
   const [botsBar, setBotsBar] = useState<boolean>(false); 
-  const [openPopOver, setOpenPopOver] = useState<boolean>(true); 
+  const [openPopOver, setOpenPopOver] = useState<boolean>(true);
+  const [chatSize, setChatSize] = useState<string>("small"); // fullscreen, small, or icon
   async function readFile()
   {
     const file = fileInput.current?.files?.[0];
@@ -204,11 +207,21 @@ function MakeBot({ chat, setChat }: chat) {
   useEffect(()=>{
     retrieveBots();
   }, [chat]);
+  useEffect(()=>{
+    if(chatSize === "small")
+      setBotsBar(false);
+    if( chatSize === "icon" || chatSize === "small" )
+      setFeedbackVisible(false);
+    else
+      setFeedbackVisible(true);
 
-  return (
-    chat ? 
-      <Chat id={botId} chat={chat} setChat={setChat} />
-    :
+    if(!chat)
+      setFeedbackVisible(true);
+  }, [chatSize, chat]);
+
+  return (<>
+    {chat &&
+      <Chat id={botId} chat={chat} setChat={setChat} size={chatSize} setSize={setChatSize} />}
       <div className="flex flex-row min-h-screen">
         <div className={`flex flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'w-[20%]' : 'w-0'}`}>
           <span className="border-b border-black w-full p-2 text-center font-bold">Bots</span>
@@ -218,18 +231,18 @@ function MakeBot({ chat, setChat }: chat) {
               <span onClick={()=>{
                 setBotId(bot.botId);
                 chatPopUp();
-              }} >{bot.botName}
+              }} className="w-[83%] hover:cursor-pointer" >{bot.botName}
               </span>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Ellipsis onClick={()=>setOpenPopOver(true)} />
+                  <Ellipsis className="hover:cursor-pointer" onClick={()=>setOpenPopOver(true)} />
                 </PopoverTrigger>
                 {openPopOver && 
                 <PopoverContent className="translate-x-10 w-30 p-0 gap-0">
-                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white focus:shadow-none border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
+                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer focus:shadow-none border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white focus:shadow-none border-none rounded-t-none h-7">Delete</Button>
+                      <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer focus:shadow-none border-none rounded-t-none h-7">Delete</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="flex flex-col">
                       <AlertDialogHeader>
@@ -242,10 +255,10 @@ function MakeBot({ chat, setChat }: chat) {
                       <AlertDialogFooter>
                         <AlertDialogCancel onClick={()=>{
                           setOpenPopOver(false);
-                        }} size="sm" variant="outline">Cancel</AlertDialogCancel>
+                        }} size="sm" className="hover:cursor-pointer" variant="outline">Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={()=>{
                           deleteBot(bot.botId);
-                        }} size="sm" variant="destructive">Delete</AlertDialogAction>
+                        }} size="sm" className="hover:cursor-pointer" variant="destructive">Delete</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -260,7 +273,7 @@ function MakeBot({ chat, setChat }: chat) {
           }
         </div>
         <div className="flex bg-[#BBC8CA] justify-center align-center flex-col h-screen w-screen">
-          <Menu onClick={()=>setBotsBar(!botsBar)} className="fixed top-0 m-3" size="35"/>
+          <Menu onClick={()=>setBotsBar(!botsBar)} className={`z-[1] fixed top-0 m-3 hover:cursor-pointer`} size="35"/>
 
           <div className="flex justify-center items-center">
             <Field className="w-[45vw] mr-7">
@@ -274,19 +287,22 @@ function MakeBot({ chat, setChat }: chat) {
             }} disabled={loading} className="bg-white text-black font-bold bg-white">Create bot</Button>
           </div>
 
-          <div className="fixed bottom-5 right-5">
-            { feedbackOpen ?
-                <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
-                  <p className="text-center p-2 font-bold">Feedback</p>
-                  <Textarea className="h-[60%] bg-[#DDE3E4] focus:shadow-none" placeholder="I value your feedback."/>
-                  <Button className="mt-2 w-[100%]">Submit Feedback</Button>
-                </div>
-              :
-                <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} />
-            }
-          </div>
+          {feedbackVisible &&
+            <div className="fixed bottom-5 right-5">
+              { feedbackOpen ?
+                  <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
+                    <p className="text-center p-2 font-bold">Feedback</p>
+                    <Textarea className="h-[60%] bg-[#DDE3E4] focus:shadow-none" placeholder="I value your feedback."/>
+                    <Button className="mt-2 w-[100%]">Submit Feedback</Button>
+                  </div>
+                :
+                  <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} />
+              }
+            </div>
+          }
         </div>
       </div>
+      </>
   )
 }
 
