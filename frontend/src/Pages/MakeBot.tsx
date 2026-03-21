@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import Chat from './Chat';
 import { Textarea } from "../Components/ui/textarea"
-import { MessageCircleMore, Menu, Ellipsis, InfoIcon, Trash2Icon } from 'lucide-react';
+import { MessageCircleMore, Menu, Ellipsis, InfoIcon, Trash2Icon, X } from 'lucide-react';
 import { Field, FieldDescription, FieldLabel } from "../Components/ui/field"
 import { Input } from "../Components/ui/input"
 import { Button } from "../Components/ui/button"
@@ -98,6 +98,10 @@ function MakeBot({ chat, setChat }: chat) {
       } else {
         scream("Invalid document. Please, upload a document of one of the following types: pdf, csv, txt, json.");
       }
+    } else 
+    {
+      setLoading(false);
+      scream("Please, upload a file");
     }
   }
   function chatPopUp(){
@@ -218,6 +222,9 @@ function MakeBot({ chat, setChat }: chat) {
     if(!chat)
       setFeedbackVisible(true);
   }, [chatSize, chat]);
+  useEffect(()=>{
+    console.log(fileInput.current?.files?.[0]);
+  }, [fileInput]);
 
   return (<>
     {chat &&
@@ -239,10 +246,10 @@ function MakeBot({ chat, setChat }: chat) {
                 </PopoverTrigger>
                 {openPopOver && 
                 <PopoverContent className="translate-x-10 w-30 p-0 gap-0">
-                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer focus:shadow-none border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
+                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer focus:shadow-none border-none rounded-t-none h-7">Delete</Button>
+                      <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer border-none rounded-t-none h-7">Delete</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="flex flex-col">
                       <AlertDialogHeader>
@@ -291,8 +298,9 @@ function MakeBot({ chat, setChat }: chat) {
             <div className="fixed bottom-5 right-5">
               { feedbackOpen ?
                   <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
+                    <X className="fixed z-[1] hover:cursor-pointer" onClick={()=>setFeedbackOpen(false)} />
                     <p className="text-center p-2 font-bold">Feedback</p>
-                    <Textarea className="h-[60%] bg-[#DDE3E4] focus:shadow-none" placeholder="I value your feedback."/>
+                    <Textarea className="h-[60%] bg-gray-200" placeholder="I value your feedback."/>
                     <Button className="mt-2 w-[100%]">Submit Feedback</Button>
                   </div>
                 :

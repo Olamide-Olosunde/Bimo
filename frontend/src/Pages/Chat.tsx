@@ -87,7 +87,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
       (size === 'icon') ?
         <BotMessageSquare className='fixed bottom-2.5 right-2.5 bg-white rounded-full p-2' size='60' />
       :
-        <div className={`flex flex-col bg-[#BBC8CA] ${size === 'fullscreen' ? 'h-screen' : 
+        <div className={`flex flex-col bg-[#BBC8CA] ${size === 'fullscreen' ? 'h-screen z-[5]' : 
                         'absolute h-[30vh] bottom-5 right-5 bg-white rounded-lg'}`}>
           {/* "nav" */}
           <div className='flex flex-row justify-between items-center'>
