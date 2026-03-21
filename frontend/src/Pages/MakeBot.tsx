@@ -1,11 +1,24 @@
 import { useEffect, useRef, useState } from "react"
 import Chat from './Chat';
 import { Textarea } from "../Components/ui/textarea"
-import { MessageCircleMore, Menu, Ellipsis } from 'lucide-react';
+import { MessageCircleMore, Menu, Ellipsis, InfoIcon, Trash2Icon } from 'lucide-react';
 import { Field, FieldDescription, FieldLabel } from "../Components/ui/field"
 import { Input } from "../Components/ui/input"
 import { Button } from "../Components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../Components/ui/popover"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../Components/ui/alert-dialog"
 
 interface eachBot{  // each bot in local storage
   botId: string,
@@ -20,7 +33,7 @@ function MakeBot({ chat, setChat }: chat) {
 
   async function sendToBackend(document: string)  // might change to arr if we taking more than 1 doc
   {
-    return await fetch("http://localhost:3000/api/bot", {
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -34,7 +47,7 @@ function MakeBot({ chat, setChat }: chat) {
   }
   async function sendPDFToBackend(pdf: FormData)
   {
-    return await fetch("http://localhost:3000/api/bot", {
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot`, {
       method: "POST",
       body: pdf,
     })
@@ -44,7 +57,7 @@ function MakeBot({ chat, setChat }: chat) {
     });
   }
   function scream(msg: string){
-    console.log(msg); // will be toaster
+    toast.error(msg);
   }
   const fileInput = useRef<HTMLInputElement>(null);
   const [fileInTxt, setFileInTxt] = useState<string>("");
@@ -54,21 +67,23 @@ function MakeBot({ chat, setChat }: chat) {
   const [bots, setBots] = useState<Array<eachBot>>();
   const [feedbackOpen, setFeedbackOpen] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<string>("");
-  const [botsBar, setBotsBar] = useState<boolean>(false);
+  const [botsBar, setBotsBar] = useState<boolean>(false); 
+  const [openPopOver, setOpenPopOver] = useState<boolean>(true); 
   async function readFile()
   {
     const file = fileInput.current?.files?.[0];
     if(file)
     {
       const reader = new FileReader();
-      if( file.name.split('.')[1] === 'json' || file.name.split('.')[1] === 'txt' ||
-          file.name.split('.')[1] === 'csv' )
+      const splitLength = file.name.split('.').length
+      if( file.name.split('.')[splitLength - 1] === 'json' || file.name.split('.')[splitLength - 1] === 'txt' ||
+          file.name.split('.')[splitLength - 1] === 'csv' )
       {
         reader.onload = (e) => {
           setFileInTxt(e.target?.result as string)
         }
         reader.readAsText(file);
-      } else if( file.name.split('.')[1] === 'pdf' ) {
+      } else if( file.name.split('.')[splitLength - 1] === 'pdf' ) {
         // send it to the backend
         const formData = new FormData();
         formData.append("file", file);
@@ -89,9 +104,38 @@ function MakeBot({ chat, setChat }: chat) {
   {
     console.log("Rename bot");
   }
-  async function deleteBot()
+  async function deleteBot(botid: string)
   {
-    console.log("Delete Bot");
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot/${botid}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response=>{
+      //remove the id from local storage
+      const bimo_bots = localStorage.getItem('Bimo_bots');
+      let bots = JSON.parse(bimo_bots ? bimo_bots : "");
+      bots.forEach((bot: string, i: number)=>{
+        bots[i] = JSON.parse(bot);
+      })
+
+      bots = bots.filter((bot: eachBot) => bot.botId != botid);
+
+      bots.forEach((bot: string, i: number)=>{
+        bots[i] = JSON.stringify(bot);
+      })
+      localStorage.setItem('Bimo_bots', JSON.stringify(bots));  //set in local storage
+      setBots(bots);  // set in state
+
+      toast.success("Successfully deleted bot.");
+      setOpenPopOver(false);
+      return response;
+    })
+    .catch(err=>{
+      scream(`An error occured.`);
+      console.error(err);
+    });
   }
   //when user inserts file
   useEffect(()=>{
@@ -156,6 +200,9 @@ function MakeBot({ chat, setChat }: chat) {
   useEffect(()=>{
     retrieveBots();
   }, []);
+  useEffect(()=>{
+    retrieveBots();
+  }, [chat]);
 
   return (
     chat ? 
@@ -164,20 +211,52 @@ function MakeBot({ chat, setChat }: chat) {
       <div className="flex flex-row min-h-screen">
         <div className={`flex flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'w-[20%]' : 'w-0'}`}>
           <span className="border-b border-black w-full p-2 text-center font-bold">Bots</span>
-          {bots?.map((bot, key)=><span onClick={()=>{
-            setBotId(bot.botId);
-            chatPopUp();
-          }} key={key} className="flex flex-row p-2 border-b border-[#000] w-full pl-5 justify-between">{bot.botName}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Ellipsis />
-            </PopoverTrigger>
-            <PopoverContent>
-              <button onClick={()=>{renameBot()}}>Rename</button>
-              <button onClick={()=>{deleteBot()}}>Delete</button>
-            </PopoverContent>
-          </Popover>
-          </span>)}
+          {bots ?
+          bots.map((bot, key)=>
+            <div key={key} className="flex flex-row p-2 border-b border-[#000] w-full pl-5 justify-between">
+              <span onClick={()=>{
+                setBotId(bot.botId);
+                chatPopUp();
+              }} >{bot.botName}
+              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Ellipsis onClick={()=>setOpenPopOver(true)} />
+                </PopoverTrigger>
+                {openPopOver && 
+                <PopoverContent className="translate-x-10 w-30 p-0 gap-0">
+                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white focus:shadow-none border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white focus:shadow-none border-none rounded-t-none h-7">Delete</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="flex flex-col">
+                      <AlertDialogHeader>
+                        <AlertDialogMedia className="bg-destructive/10 text:destructive">
+                          <Trash2Icon />
+                        </AlertDialogMedia>
+                        <AlertDialogTitle>Delete bot?</AlertDialogTitle>
+                        <AlertDialogDescription>Are you sure you want to delete this bot?</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={()=>{
+                          setOpenPopOver(false);
+                        }} size="sm" variant="outline">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={()=>{
+                          deleteBot(bot.botId);
+                        }} size="sm" variant="destructive">Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </PopoverContent>
+                }
+              </Popover>
+            </div>
+          )
+          :
+          <span className="flex text-center font-bold mt-[40vh]">Created bots will appear here :)</span>
+          
+          }
         </div>
         <div className="flex bg-[#BBC8CA] justify-center align-center flex-col h-screen w-screen">
           <Menu onClick={()=>setBotsBar(!botsBar)} className="fixed top-0 m-3" size="35"/>
@@ -198,7 +277,7 @@ function MakeBot({ chat, setChat }: chat) {
             { feedbackOpen ?
                 <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
                   <p className="text-center p-2 font-bold">Feedback</p>
-                  <Textarea className="h-[60%] bg-[#DDE3E4] focus:shadow-none" placeholder="I value your feedback."/>{/* will adopt same look as small-size chatbot */}
+                  <Textarea className="h-[60%] bg-[#DDE3E4] focus:shadow-none" placeholder="I value your feedback."/>
                   <Button className="mt-2 w-[100%]">Submit Feedback</Button>
                 </div>
               :

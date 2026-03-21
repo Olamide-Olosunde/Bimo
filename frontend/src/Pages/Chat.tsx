@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import Loading from '../Components/Loading';
 import BotThinking from '../Components/BotThinking';
+import { toast } from "sonner"
 
 interface props{
   id: string;
@@ -21,10 +22,13 @@ const Chat = ({id, chat, setChat}: props) => {
   const [bot, setBot] = useState<botFormat>();
   const [thinking, setThinking] = useState<boolean>(false);
 
+  function scream(msg: string){
+    toast.error(msg);
+  }
   // fetch bot from backend
   async function fetchBot()
   {
-    return await fetch(`http://localhost:3000/api/bot/${id}`, {
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json"
@@ -33,12 +37,15 @@ const Chat = ({id, chat, setChat}: props) => {
     .then(botInfo=>{
       return botInfo.json()
     })
-    .catch(err=>console.error(err));
+    .catch(err=>{
+      scream(`An error occured.`);
+      console.error(err);
+    });
   }
   async function emptyChat(bot: botFormat)
   {
     bot.chat.length = 0;
-    return await fetch(`http://localhost:3000/api/bot/${bot.bot_id}`, {
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot/${bot.bot_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -57,7 +64,7 @@ const Chat = ({id, chat, setChat}: props) => {
   async function askNova(bot: botFormat)
   {
     setThinking(true);
-    return await fetch("http://localhost:3000/api/chat", {
+    return await fetch(`${import.meta.env.VITE_BACKEND}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
