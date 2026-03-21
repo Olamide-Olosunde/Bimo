@@ -102,7 +102,8 @@ function MakeBot({ chat, setChat }: chat) {
   }
   async function renameBot()
   {
-    console.log("Rename bot");
+    // console.log("Rename bot");
+    toast.info("Feature coming soon");
   }
   async function deleteBot(botid: string)
   {

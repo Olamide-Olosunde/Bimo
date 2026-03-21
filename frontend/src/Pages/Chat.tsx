@@ -2,6 +2,9 @@ import {useEffect, useState} from 'react';
 import Loading from '../Components/Loading';
 import BotThinking from '../Components/BotThinking';
 import { toast } from "sonner"
+import { Button } from "../Components/ui/button"
+import { ArrowDownRight, ArrowUp, Minimize2, MoveDiagonal, X } from 'lucide-react';
+import { Input } from "../Components/ui/input";
 
 interface props{
   id: string;
@@ -79,45 +82,45 @@ const Chat = ({id, chat, setChat}: props) => {
 
   return (
     (chat && bot) ?
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}>
-          <button onClick={()=>{
+      <div className='flex flex-col bg-[#BBC8CA] h-screen'>
+        {/* "nav" */}
+        <div className='flex flex-row justify-between items-center'>
+          <Button onClick={()=>{
             if( bot.chat.length > 0 )
               emptyChat(bot);
             else
-              window.alert("Chat is cleared.");
-          }}>Clear Chat</button>
-          <div>
-            <button>small</button>
-            <button>corner</button>
-            <button>Fullscreen</button>
-            <button onClick={()=>{
+              toast("Chat is cleared.");
+          }}>Clear Chat</Button>
+          <div className='flex flex-row w-[30%] py-2 mx-1.5 justify-between'>
+            {/* will add a hover to describe each of these to user */}
+            <Minimize2 />
+            <ArrowDownRight />
+            <MoveDiagonal />
+            <X onClick={()=>{
               setChat(false);
-            }}>Close x</button>
+            }} className='rounded-md bg-destructive/50' />
           </div>
         </div>
-        <h2 style={{
-          display: 'flex',
-          justifyContent: 'center',
-          textAlign: 'center',
-        }}>{bot.bot_name}</h2>
-        <input name='question' placeholder="Enter text" value={question} onChange={(e)=>setQuestion(e.target.value)} />
-        {thinking ? <BotThinking /> : <p>{response}</p>}
-        <button onClick={()=>{
-          // push user question to bot.chat
-          bot.chat.push(question);
+        {
+          <div className={`${(bot.chat.length === 0) ? 'mt-[40vh]' : ''}`}>
+            <h2 className={`flex justify-center text-center font-bold
+                            ${(bot.chat.length === 0) ? 'text-5xl' : 'text-2xl'}`}>{bot.bot_name}</h2>
+            {bot.chat.map((text, i)=><span className={`${i % 2 == 0} ? bg-[#C7FFED] : bg-[#B592A0]`}>{text}</span>)}
+            <div className={`flex flex-row gap-1 fixed bottom-2 w-[100%] px-2`}>
+              <Input className='flex w-[90%]' name='question' placeholder="Enter text" value={question} onChange={(e)=>setQuestion(e.target.value)} />
+              <Button onClick={()=>{
+                // push user question to bot.chat
+                bot.chat.push(question);
 
-          // askNova(bot)
-          askNova(bot)
-          .then(result=>setResponse(result));
-        }} disabled={question ? false : true}>Submit</button>
+                // askNova(bot)
+                askNova(bot)
+                .then(result=>setResponse(result));
+              }} disabled={question ? false : true}>{/* will add a hover to tell user it's disabled */}
+                <ArrowUp />
+              </Button>
+            </div>
+          </div>
+        }
       </div>
     :
       <Loading />
