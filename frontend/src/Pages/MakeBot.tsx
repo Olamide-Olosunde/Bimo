@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import Chat from './Chat';
 import { Textarea } from "../Components/ui/textarea"
-import { MessageCircleMore, Menu, Ellipsis, InfoIcon, Trash2Icon, X } from 'lucide-react';
+import { MessageCircleMore, Menu, Ellipsis, Trash2Icon, X } from 'lucide-react';
 import { Field, FieldDescription, FieldLabel } from "../Components/ui/field"
 import { Input } from "../Components/ui/input"
 import { Button } from "../Components/ui/button"
@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../Components/ui/alert-dialog"
-import { Spinner } from "../Components/ui/spinner";
 
 interface eachBot{  // each bot in local storage
   botId: string,
@@ -71,7 +70,7 @@ function MakeBot({ chat, setChat }: chat) {
   const [feedback, setFeedback] = useState<string>("");
   const [botsBar, setBotsBar] = useState<boolean>(false); 
   const [openPopOver, setOpenPopOver] = useState<boolean>(true);
-  const [chatSize, setChatSize] = useState<string>("small"); // fullscreen, small, or icon
+  const [chatSize, setChatSize] = useState<string>("fullscreen"); // fullscreen, small, or icon
   async function readFile()
   {
     const file = fileInput.current?.files?.[0];
@@ -222,16 +221,16 @@ function MakeBot({ chat, setChat }: chat) {
     if(!chat)
       setFeedbackVisible(true);
   }, [chatSize, chat]);
-  useEffect(()=>{
-    console.log(fileInput.current?.files?.[0]);
-  }, [fileInput]);
+  // useEffect(()=>{
+  //   console.log(fileInput.current?.files?.[0]);
+  // }, [fileInput]);
 
   return (<>
     {chat &&
       <Chat id={botId} chat={chat} setChat={setChat} size={chatSize} setSize={setChatSize} />}
       <div className="flex flex-row min-h-screen">
-        <div className={`flex flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'w-[20%]' : 'w-0'}`}>
-          <span className="border-b border-black w-full p-2 text-center font-bold">Bots</span>
+        <div className={`flex overflow-y-auto no-scrollbar max-h-screen flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'w-[20%]' : 'w-0'}`}>
+          <span className="border-b border-black w-full p-2 text-center font-bold">Bots</span>{/* might make this sticky */}
           {bots ?
           bots.map((bot, key)=>
             <div key={key} className="flex flex-row p-2 border-b border-[#000] w-full pl-5 justify-between">
@@ -280,18 +279,22 @@ function MakeBot({ chat, setChat }: chat) {
           }
         </div>
         <div className="flex bg-[#BBC8CA] justify-center align-center flex-col h-screen w-screen">
-          <Menu onClick={()=>setBotsBar(!botsBar)} className={`z-[1] fixed top-0 m-3 hover:cursor-pointer`} size="35"/>
+          <Menu onClick={()=>setBotsBar(!botsBar)} className={`z-[2] fixed top-0 m-3 hover:cursor-pointer`} size="35"/>
+          <p className="font-semibold text-5xl text-center z-[1] fixed top-0 w-full mt-3 font-serif">Bimo</p>
 
-          <div className="flex justify-center items-center">
-            <Field className="w-[45vw] mr-7">
-              <FieldLabel htmlFor="picture">File</FieldLabel>
-              <Input type='file' name='document' id='doc' ref={fileInput} className="file:w-[20%] file:h-[100%] file:bg-white file:text-black file:rounded-md" />
-              <FieldDescription>Select a pdf to upload.</FieldDescription>
-            </Field>
-            <Button onClick={()=>{
-              setLoading(true);
-              readFile();
-            }} disabled={loading} className="bg-white text-black font-bold bg-white">Create bot</Button>
+          <div className="flex flex-col">
+            <div className="flex justify-center items-center">
+              <Field className="w-[45vw] mr-7">
+                <FieldLabel htmlFor="picture">File</FieldLabel>
+                <Input type='file' name='document' id='doc' ref={fileInput} className="file:w-[20%] file:h-[100%] file:bg-white file:text-black file:rounded-md" />
+                <FieldDescription>Select a pdf to upload.</FieldDescription>
+              </Field>
+              <Button onClick={()=>{
+                setLoading(true);
+                setChat(false);
+                readFile();
+              }} disabled={loading} className="bg-white text-black font-bold bg-white">Create bot</Button>
+            </div>
           </div>
 
           {feedbackVisible &&
@@ -301,10 +304,10 @@ function MakeBot({ chat, setChat }: chat) {
                     <X className="fixed z-[1] hover:cursor-pointer" onClick={()=>setFeedbackOpen(false)} />
                     <p className="text-center p-2 font-bold">Feedback</p>
                     <Textarea className="h-[60%] bg-gray-200" placeholder="I value your feedback."/>
-                    <Button className="mt-2 w-[100%]">Submit Feedback</Button>
+                    <Button className="mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
                   </div>
                 :
-                  <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} />
+                  <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} className="hover:cursor-pointer" />
               }
             </div>
           }

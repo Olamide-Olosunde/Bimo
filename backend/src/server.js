@@ -155,7 +155,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
         .then(async (response)=>{
             // mongo db
             gen_id = generateRandomString();
-            await await client.connect();
+            await client.connect();
 
             const collection = client.db("users").collection('bots_for_mvp');
             await collection.insertOne({
@@ -206,7 +206,7 @@ app.get("/api/bot/:id", async (req, res)=>{
 
 
         // mongo db
-        await await client.connect();
+        await client.connect();
 
         const collection = client.db("users").collection("bots_for_mvp");
         const bot = await collection.findOne({ bot_id: req.params.id });
@@ -233,7 +233,7 @@ app.get("/api/bot/:id", async (req, res)=>{
 app.get("/api/bot", async (req, res)=>{
     try{
         // mongo db
-        await await client.connect();
+        await client.connect();
         const collection = client.db("users").collection("bots_for_mvp");
         const bots = await collection.find().toArray();
 
@@ -307,7 +307,7 @@ app.put("/api/bot/:id", async (req, res)=>{
 
 
         // mongo db
-        await await client.connect();
+        await client.connect();
         const collection = client.db("users").collection("bots_for_mvp");
 
         await collection.updateOne({ bot_id: req.body.bot_id }, {$set: {
@@ -396,6 +396,12 @@ app.post("/api/chat", async (req, res)=>{
         if( typeof question !== 'string' )
         {
             console.log("Body in invalid format");
+            res.sendStatus(400);
+            return;
+        }
+        if( question.length > 10000 )
+        {
+            console.log("Prompt too long");
             res.sendStatus(400);
             return;
         }

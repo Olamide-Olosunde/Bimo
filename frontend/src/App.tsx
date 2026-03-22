@@ -7,7 +7,7 @@ function App() {
 
   const [chat, setChat] = useState<boolean>(false);
   return (
-    <div className="font-['GT America']">
+    <div>
       <Toaster />
       <MakeBot chat={chat} setChat={setChat} />
     </div>
