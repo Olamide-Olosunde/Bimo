@@ -229,7 +229,7 @@ function MakeBot({ chat, setChat }: chat) {
     {chat &&
       <Chat id={botId} chat={chat} setChat={setChat} size={chatSize} setSize={setChatSize} />}
       <div className="flex flex-row min-h-screen">
-        <div className={`flex overflow-y-auto no-scrollbar max-h-screen flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'w-[20%]' : 'w-0'}`}>
+        <div className={`flex overflow-y-auto no-scrollbar max-h-screen flex-col bg-[#C7FFED] items-center transition-[width] duration-500 ease-in-out ${botsBar ? 'md:w-[20%] sm:w-[25%] max-[640px]:w-[50%]' : 'w-0'}`}>
           <span className="border-b border-black w-full p-2 text-center font-bold">Bots</span>{/* might make this sticky */}
           {bots ?
           bots.map((bot, key)=>
@@ -283,8 +283,8 @@ function MakeBot({ chat, setChat }: chat) {
           <p className="font-semibold text-5xl text-center z-[1] fixed top-0 w-full mt-3 font-serif">Bimo</p>
 
           <div className="flex flex-col">
-            <div className="flex justify-center items-center">
-              <Field className="w-[45vw] mr-7">
+            <div className={`flex justify-center items-center max-[640px]:flex-col`}>
+              <Field className="w-[45vw] mr-7 max-[900px]:w-[75%] max-[640px]:mr-0">
                 <FieldLabel htmlFor="picture">File</FieldLabel>
                 <Input type='file' name='document' id='doc' ref={fileInput} className="file:w-[20%] file:h-[100%] file:bg-white file:text-black file:rounded-md" />
                 <FieldDescription>Select a pdf to upload.</FieldDescription>

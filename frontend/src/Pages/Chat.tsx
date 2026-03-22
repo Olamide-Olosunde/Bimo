@@ -5,7 +5,6 @@ import { toast } from "sonner"
 import { Button } from "../Components/ui/button"
 import { ArrowDownRight, ArrowUp, BotMessageSquare, Minimize2, MoveDiagonal, X } from 'lucide-react';
 import { Input } from "../Components/ui/input";
-import { Separator } from '../Components/ui/separator';
 
 interface props{
   id: string;
@@ -24,7 +23,7 @@ interface botFormat{
 
 const Chat = ({id, chat, setChat, size, setSize}: props) => {
   const [question, setQuestion] = useState<string>("");
-  const [response, setResponse] = useState<string>("");
+  // const [response, setResponse] = useState<string>("");
   const [bot, setBot] = useState<botFormat>();
   const [thinking, setThinking] = useState<boolean>(false);
   const [count, setCount] = useState<number>(0);  // to keep updateChat() from erroring out every first mount

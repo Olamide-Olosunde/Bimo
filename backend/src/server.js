@@ -70,6 +70,8 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
                     return result.text;
                 })
                 .catch(err=>console.error(err));
+
+                // should probably delete file once loaded...
             }
         }
 
