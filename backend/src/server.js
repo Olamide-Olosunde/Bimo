@@ -122,9 +122,9 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
                 return {chunks, embeddings};
             }
             else {
-                const batchEmbeddings = await embedDoc(chunks);
-                // console.log("done embedding");
-                return {chunks, batchEmbeddings};
+                const embeddings = await embedDoc(chunks);
+                // console.log(`done embedding`);
+                return {chunks, embeddings};
             }
         })
         .then(async (chunksAndEmbeddings)=>{
@@ -148,7 +148,7 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             .then((ans)=>{
                 // get name and return
                 const name = ans.choices[0].message.content;
-                // console.log("done generating name");
+                // console.log(`done generating name\n${embeddings}`);
                 return {name, chunks, embeddings};
             })
         })// lowkey, might need to add a description... we'll see
@@ -280,8 +280,9 @@ app.put("/api/bot/:id", async (req, res)=>{
         if( 
             (typeof req.body.bot_name) !== "string" ||
             (typeof req.body.chunks) !== "object" ||
-            (typeof req.body.embeddings) !== "object" ||
-            (typeof req.body.chat) !== "object"
+            (typeof req.body.embeddings) !== "object" 
+            // ||
+            // (typeof req.body.chat) !== "object"  // cause sometimes we want to empty chat
         )
         {
             console.log("Invalid bot format");
@@ -290,8 +291,9 @@ app.put("/api/bot/:id", async (req, res)=>{
         }
         if( 
             (typeof req.body.chunks[0]) !== "string" ||
-            (typeof req.body.embeddings[0]) !== "object" ||
-            (typeof req.body.chat[0]) !== "string"
+            (typeof req.body.embeddings[0]) !== "object" 
+            // ||
+            // (typeof req.body.chat[0]) !== "string"   // cause sometimes we want to empty chat
         )
         {
             console.log("Invalid bot format");
@@ -305,9 +307,12 @@ app.put("/api/bot/:id", async (req, res)=>{
             return;
         }
 
+        console.log(req.body.chat);
 
+
+        // might have to wrap this in thens, cause it sometimes runs before connecting...
         // mongo db
-        await client.connect();
+        await client.connect()
         const collection = client.db("users").collection("bots_for_mvp");
 
         await collection.updateOne({ bot_id: req.body.bot_id }, {$set: {
@@ -392,7 +397,8 @@ app.post("/api/chat", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
-        const question = req.body.chat;
+        const length = req.body.chat.length;
+        const question = req.body.chat[ length - 1 ];
         if( typeof question !== 'string' )
         {
             console.log("Body in invalid format");
@@ -405,6 +411,18 @@ app.post("/api/chat", async (req, res)=>{
             res.sendStatus(400);
             return;
         }
+
+
+        async function embedText(txt)
+        {
+            const embeddings = new OpenAIEmbeddings({
+                model: 'text-embedding-3-small',
+                apiKey: process.env.OPEN_AI_API_KEY,
+            });
+            const embedding = await embeddings.embedQuery(txt);
+            return embedding;
+        }
+        const embeddedQuestion = await embedText(question);
 
         // Similarity function
         function cosineSimilarity(vecA, vecB)
@@ -422,7 +440,7 @@ app.post("/api/chat", async (req, res)=>{
             const magnitudeB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
             
             if(magnitudeA == 0 || magnitudeB == 0)
-            return 0;
+                return 0;
 
             return dotProduct / (magnitudeA * magnitudeB);
         }
@@ -436,7 +454,10 @@ app.post("/api/chat", async (req, res)=>{
             similarities.sort((a,b) => b.similarity - a.similarity);
             return similarities.slice(0, topN);
         }
-        similarityFunction();
+        const similarChunks = similarityFunction(embeddedQuestion, req.body.embeddings, req.body.chunks);
+        const dataForQuestion = similarChunks[0].content + similarChunks[1].content + similarChunks[2].content; // topN's 3
+        // question = question + "\n\nContext:\n\n" + similarChunks;
+        console.log(`Question: ${question}\n\n` + `Data: ${dataForQuestion}`);
 
 
         // nova
@@ -444,11 +465,13 @@ app.post("/api/chat", async (req, res)=>{
             messages: [
                 {
                     role: "system",
-                    content: "You are a helpful assistant. Don't format text with md styling. Always give a response of maximum 2 sentences. Only reach 2 if NEEDED. When ever you're asked to generate a file name, wrap the name of the file in quotation marks."
+                    content: `Answer the question STRICTLY based on the following data. 
+                            If the answer isn't related to the data, say "I don't have that information."
+                            Don't add any special stylings to text. Make your answers concise: 2 sentences at most.`
                 },
                 {
                     role: "user",
-                    content: question
+                    content: `Question: ${question}\n\n` + `Data: ${dataForQuestion}`
                 }
             ],
             model: "nova-2-lite-v1",

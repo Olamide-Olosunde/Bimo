@@ -27,6 +27,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
   const [response, setResponse] = useState<string>("");
   const [bot, setBot] = useState<botFormat>();
   const [thinking, setThinking] = useState<boolean>(false);
+  const [count, setCount] = useState<number>(0);  // to keep updateChat() from erroring out every first mount
 
   function scream(msg: string){
     toast.error(msg);
@@ -50,7 +51,6 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
   }
   async function emptyChat(bot: botFormat)
   {
-    bot.chat.length = 0;
     return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot/${bot.bot_id}`, {
       method: "PUT",
       headers: {
@@ -59,6 +59,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
       body: JSON.stringify(bot),
     })
     .then(result=>{
+      toast("Please, refresh the page if changes aren't reflected yet.")
       return result;
     })
     
@@ -82,6 +83,37 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
       return result.json();
     });
   }
+  async function updateChat(bot: botFormat)
+  {
+    await fetch(`${import.meta.env.VITE_BACKEND}/api/bot/${bot.bot_id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(bot)
+    })
+    .then(result=>console.log(result));
+  }
+  useEffect(()=>{
+    if(bot)
+      if(count > 1) // useEffect loads twice
+        updateChat(bot);
+      else
+        setCount(count + 1);
+  }, [bot?.chat]);
+  useEffect(()=>{
+    async function run(){
+      if(question && bot)
+      {
+        await askNova(bot).then(result=>{
+          // console.log(result.choices[0].message.content);
+          setBot({...bot, chat: [...bot.chat, result.choices[0].message.content]});
+        });
+        setQuestion('');
+      }
+    }
+    run();
+  }, [bot]);
 
   return (
     (chat && bot) ?
@@ -96,7 +128,10 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
               className='text-xs font-medium text-black bg-[#C7FFED] hover:bg-[#AAFAC8] cursor-pointer border border-[#AAFAC8] rounded-lg px-3 py-1 h-auto transition-all duration-200'
               onClick={()=>{
                 if( bot.chat.length > 0 )
+                {
+                  setBot({...bot, chat: []});
                   emptyChat(bot);
+                }
                 else
                   toast("Chat is cleared.");
               }}>Clear Chat</Button>
@@ -129,6 +164,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
                     ? 'bg-[#C7FFED] text-black self-end border border-[#AAFAC8]' 
                     : 'bg-white text-black self-start border border-[#BBC8CA]'}`}>{text}</span>
                 )}
+                {thinking && <BotThinking color='#C7FFED' />}
               </div>
             </div>
 
@@ -140,11 +176,10 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
                   scream("Prompt can only be 10000 characters long.");
               }} className='flex-1 bg-white border border-[#BBC8CA] text-black placeholder:text-[#BBC8CA] rounded-xl focus-visible:ring-[#AAFAC8] focus-visible:border-[#AAFAC8] transition-all duration-200'
               name='question' maxLength={10000} placeholder="Ask a question..." value={question} />
-              <Button onClick={()=>{
-                bot.chat.push(question);
-                askNova(bot).then(result=>setResponse(result));
+              <Button onClick={async ()=>{
+                setBot({...bot, chat: [...bot.chat, question]})
               }} disabled={question ? false : true}
-              className='bg-[#AAFAC8] hover:bg-[#C7FFED] text-black rounded-xl transition-all duration-200 shadow-md shadow-[#AAFAC8]/40 shrink-0'>
+              className='bg-[#AAFAC8] hover:bg-[#C7FFED] text-black rounded-xl transition-all duration-200 shadow-md shadow-[#AAFAC8]/40 shrink-0 cursor-pointer'>
                 <ArrowUp className='w-4 h-4' />
               </Button>
             </div>
