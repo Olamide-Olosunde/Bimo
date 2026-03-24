@@ -317,13 +317,13 @@ function MakeBot({ chat, setChat }: chat) {
           {feedbackVisible &&
             <div className="fixed bottom-5 right-5">
               { feedbackOpen ?
-                  <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
+                  <div className="w-[60vw] h-[31vh] border rounded-lg p-2 pb-5 bg-white sm:w-[45vw] sm:h-[31vh] lg:w-[45vw] lg:h-[31vh]">
                     <X className="fixed z-[1] hover:cursor-pointer" onClick={()=>setFeedbackOpen(false)} />
-                    <p className="text-center p-2 font-bold">Feedback</p>
-                    <Textarea className="h-[60%] bg-gray-200" placeholder="I value your feedback." value={feedback} onChange={e=>setFeedback(e.target.value)}/>
+                    <p className="relative text-center p-2 font-bold">Feedback</p>
+                    <Textarea className="relative h-[60%] md:h-[64%] xl:h-[70%] bg-gray-200" placeholder="I value your feedback." value={feedback} onChange={e=>setFeedback(e.target.value)}/>
                     <Button onClick={()=>{
                       sendFeedback(feedback);
-                    }} className="mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
+                    }} className="relative mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
                   </div>
                 :
                   <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} className="hover:cursor-pointer" />
