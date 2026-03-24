@@ -1,0 +1,17 @@
+node_modules/
+**/.env
+**/.env.*
+**/.git
+.gitignore
+
+.vscode
+dist/
+*.md
+tests/
+
+# *
+# !src/
+# !package*.json
+# !dockerfile
+# !dockerignore
+# !nginx.conf
