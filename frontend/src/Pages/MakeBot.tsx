@@ -238,9 +238,6 @@ function MakeBot({ chat, setChat }: chat) {
     if(!chat)
       setFeedbackVisible(true);
   }, [chatSize, chat]);
-  // useEffect(()=>{
-  //   console.log(fileInput.current?.files?.[0]);
-  // }, [fileInput]);
 
   return (<>
     {chat &&
@@ -299,6 +296,10 @@ function MakeBot({ chat, setChat }: chat) {
           <Menu onClick={()=>setBotsBar(!botsBar)} className={`z-[2] fixed top-0 m-3 hover:cursor-pointer`} size="35"/>
           <p className="font-semibold text-5xl text-center z-[1] fixed top-0 w-full mt-3 font-serif">Bimo</p>
 
+          <CircleQuestionMark onClick={()=>{
+            window.location.href="/FAQs"
+          }} size="30" className="fixed z-[1] right-4 top-4 cursor-pointer" />
+
           <div className="flex flex-col">
             <div className={`flex justify-center items-center max-[640px]:flex-col`}>
               <Field className="w-[45vw] mr-7 max-[900px]:w-[75%] max-[640px]:mr-0">
@@ -323,10 +324,10 @@ function MakeBot({ chat, setChat }: chat) {
                     <Textarea className="relative h-[60%] md:h-[64%] xl:h-[70%] bg-gray-200" placeholder="I value your feedback." value={feedback} onChange={e=>setFeedback(e.target.value)}/>
                     <Button onClick={()=>{
                       sendFeedback(feedback);
-                    }} className="relative mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
+                    }} className="relative mt-2 w-[100%] cursor-pointer">Submit Feedback</Button>
                   </div>
                 :
-                  <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} className="hover:cursor-pointer" />
+                  <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} className="cursor-pointer" />
               }
             </div>
           }
