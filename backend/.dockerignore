@@ -1,0 +1,5 @@
+*
+!src/server.js
+!package*.json
+!dockerfile
+!dockerignore
