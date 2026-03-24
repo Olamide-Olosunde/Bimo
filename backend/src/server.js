@@ -467,7 +467,7 @@ app.post("/api/chat", async (req, res)=>{
         const similarChunks = similarityFunction(embeddedQuestion, req.body.embeddings, req.body.chunks);
         const dataForQuestion = similarChunks[0].content + similarChunks[1].content + similarChunks[2].content; // topN's 3
         // question = question + "\n\nContext:\n\n" + similarChunks;
-        console.log(`Question: ${question}\n\n` + `Data: ${dataForQuestion}`);
+        // console.log(`Question: ${question}\n\n` + `Data: ${dataForQuestion}`);
 
 
         // nova

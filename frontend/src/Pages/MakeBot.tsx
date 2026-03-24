@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import Chat from './Chat';
 import { Textarea } from "../Components/ui/textarea"
-import { MessageCircleMore, Menu, Ellipsis, Trash2Icon, X } from 'lucide-react';
+import { MessageCircleMore, Menu, Ellipsis, Trash2Icon, X, CircleQuestionMark } from 'lucide-react';
 import { Field, FieldDescription, FieldLabel } from "../Components/ui/field"
 import { Input } from "../Components/ui/input"
 import { Button } from "../Components/ui/button"

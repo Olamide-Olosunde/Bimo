@@ -163,7 +163,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
                     ? 'bg-[#C7FFED] text-black self-end border border-[#AAFAC8]' 
                     : 'bg-white text-black self-start border border-[#BBC8CA]'}`}>{text}</span>
                 )}
-                {thinking && <BotThinking color='#C7FFED' />}
+                {thinking && <BotThinking color='#B2E6D4' />}
               </div>
             </div>
 
