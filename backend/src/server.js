@@ -5,6 +5,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const { OpenAIEmbeddings } = require("@langchain/openai");
 const { RecursiveCharacterTextSplitter } = require("@langchain/textsplitters");
 const { PDFParse } =  require('pdf-parse');
+const fs = require("fs");
 
 const multer = require("multer");
 const upload = multer({ dest: 'uploads/' });
@@ -24,6 +25,8 @@ const client = new MongoClient(admin_uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
+    tls: true,
+    tlsAllowInvalidCertificates: true
   }
 });
 
@@ -70,8 +73,6 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
                     return result.text;
                 })
                 .catch(err=>console.error(err));
-
-                // should probably delete file once loaded...
             }
         }
 
@@ -103,6 +104,13 @@ app.post("/api/bot", upload.single("file"), async (req, res)=>{
             chunkOverlap: 64,
         });
         await getDoc()
+        .then(doc=>{
+            fs.unlink(req.file.path, (err)=>{
+                console.error(err);
+            })
+
+            return doc;
+        })
         .then(async (doc)=>{
             return await splitter.splitText(doc)
             .then(result=>{
@@ -467,7 +475,8 @@ app.post("/api/chat", async (req, res)=>{
             messages: [
                 {
                     role: "system",
-                    content: `Answer the question STRICTLY based on the following data. 
+                    content: `You are bot birthed from Bimo (a chatbot maker), and your name is ${req.body.bot_name}.
+                            Answer the question STRICTLY based on the following data. 
                             If the answer isn't related to the data, say "I don't have that information."
                             Don't add any special stylings to text. Make your answers concise: 2 sentences at most.`
                 },
@@ -490,6 +499,47 @@ app.post("/api/chat", async (req, res)=>{
     }
 })
 
+app.post("/api/feedback", async(req, res)=>{
+    try{
+        if(!req.body)
+        {
+            console.log("No body");
+            res.sendStatus(400);
+            return;
+        }
+        if( !req.body.feedback )
+        {
+            console.log("No feedback");
+            res.sendStatus(400);
+            return;
+        }
+        if( typeof req.body.feedback !== "string" )
+        {
+            console.log("Invalid type");
+            res.sendStatus(400);
+            return;
+        }
+        const feedback = req.body.feedback;
+        const now = new Date();
+        
+        await client.connect()
+        .then(async ()=>{
+            const collection = client.db("users").collection('feedback');
+            await collection.insertOne({
+                date: now,
+                feedback: feedback
+            });
+        })
+
+        res.send("Thank you for your feedback!");
+
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    } finally{
+        await client.close();
+    }
+})
 
 
 app.listen(3000, ()=>{

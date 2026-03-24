@@ -31,6 +31,23 @@ interface chat{
 
 function MakeBot({ chat, setChat }: chat) {
 
+  async function sendFeedback(txt: string){
+    await fetch(`${import.meta.env.VITE_BACKEND}/api/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({feedback: txt})
+    })
+    .then(()=>{
+      setFeedback("");
+      toast("Thank you for your feedback!");
+    })
+    .catch((err)=>{
+      console.error(err);
+      toast.error("An error occured");
+    })
+  }
   async function sendToBackend(document: string)  // might change to arr if we taking more than 1 doc
   {
     return await fetch(`${import.meta.env.VITE_BACKEND}/api/bot`, {
@@ -245,7 +262,7 @@ function MakeBot({ chat, setChat }: chat) {
                 </PopoverTrigger>
                 {openPopOver && 
                 <PopoverContent className="translate-x-10 w-30 p-0 gap-0">
-                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer border-none rounded-b-none h-7" onClick={()=>{renameBot()}}>Rename</Button>
+                  <Button className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer border-none rounded-b-none h-7 focus-visible:ring-transparent" onClick={()=>{renameBot()}}>Rename</Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" className="bg-white text-black hover:bg-[#9C7178] hover:text-white hover:cursor-pointer border-none rounded-t-none h-7">Delete</Button>
@@ -287,13 +304,13 @@ function MakeBot({ chat, setChat }: chat) {
               <Field className="w-[45vw] mr-7 max-[900px]:w-[75%] max-[640px]:mr-0">
                 <FieldLabel htmlFor="picture">File</FieldLabel>
                 <Input type='file' name='document' id='doc' ref={fileInput} className="file:w-[20%] file:h-[100%] file:bg-white file:text-black file:rounded-md" />
-                <FieldDescription>Select a pdf to upload.</FieldDescription>
+                <FieldDescription>Upload a file (acceptable file types include pdf, json, txt, and csv.)</FieldDescription>
               </Field>
               <Button onClick={()=>{
                 setLoading(true);
                 setChat(false);
                 readFile();
-              }} disabled={loading} className="bg-white text-black font-bold bg-white">Create bot</Button>
+              }} disabled={loading} className="bg-white text-black font-bold bg-white cursor-pointer">Create bot</Button>
             </div>
           </div>
 
@@ -303,8 +320,10 @@ function MakeBot({ chat, setChat }: chat) {
                   <div className="w-[25vw] h-[22vh] border rounded-lg p-2 pb-5 bg-white">
                     <X className="fixed z-[1] hover:cursor-pointer" onClick={()=>setFeedbackOpen(false)} />
                     <p className="text-center p-2 font-bold">Feedback</p>
-                    <Textarea className="h-[60%] bg-gray-200" placeholder="I value your feedback."/>
-                    <Button className="mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
+                    <Textarea className="h-[60%] bg-gray-200" placeholder="I value your feedback." value={feedback} onChange={e=>setFeedback(e.target.value)}/>
+                    <Button onClick={()=>{
+                      sendFeedback(feedback);
+                    }} className="mt-2 w-[100%] hover:cursor-pointer">Submit Feedback</Button>
                   </div>
                 :
                   <MessageCircleMore size="40" onClick={()=>setFeedbackOpen(!feedbackOpen)} className="hover:cursor-pointer" />

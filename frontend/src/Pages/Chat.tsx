@@ -120,7 +120,7 @@ const Chat = ({id, chat, setChat, size, setSize}: props) => {
         <BotMessageSquare onClick={()=>setSize("small")} className='fixed bottom-2.5 right-2.5 bg-[#C7FFED] rounded-full p-2 hover:cursor-pointer' size='60' />
       :
         <div className={`flex flex-col bg-[#BBC8CA] shadow-2xl border border-[#BBC8CA] ${size === 'fullscreen' ? 'h-screen w-screen fixed z-[5]' : 
-                        'absolute h-[60vh] w-[92vw] sm:h-[50vh] sm:w-[60vw] md:h-[45vh] md:w-[38vw] lg:h-[38vh] lg:w-[20vw] bottom-5 right-3 rounded-2xl overflow-hidden'}`}>
+                        'absolute h-[60vh] w-[92vw] sm:h-[50vh] sm:w-[60vw] md:h-[45vh] md:w-[38vw] lg:h-[45vh] lg:w-[35vw] xl:h-[45vh] xl:w-[23vw] bottom-5 right-3 rounded-2xl overflow-hidden'}`}>
           {/* "nav" */}
           <div className='relative flex flex-row justify-between items-center bg-white border-b border-[#BBC8CA] px-3 py-2.5'>
             <Button 
