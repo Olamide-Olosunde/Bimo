@@ -1,0 +1,28 @@
+name: bimo
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    image: bimo-backend
+    env_file:
+      - ./backend/.env.list
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile
+      args:
+        VITE_BACKEND: ${VITE_BACKEND:-http://localhost:3000}
+    image: bimo-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -5,6 +5,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+ARG VITE_BACKEND
+ENV VITE_BACKEND=$VITE_BACKEND
 RUN npm run build
 
 
