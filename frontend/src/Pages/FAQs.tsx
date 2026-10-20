@@ -30,7 +30,7 @@ const FAQs = () => {
                 <AccordionTrigger>What do you do with my data?</AccordionTrigger>
                 <AccordionContent>
                     Your data is used solely to power your bot.
-                    Delete a bot, and all associated data is permanently removed.
+                    Delete a bot, and all associated data is permanently removed from our servers.
                 </AccordionContent>
             </AccordionItem>
             <AccordionItem value="special" className='border-black'>
