@@ -321,7 +321,7 @@ function MakeBot({ chat, setChat }: chat) {
                   <div className="w-[60vw] h-[31vh] border rounded-lg p-2 pb-5 bg-white sm:w-[45vw] sm:h-[31vh] md:h-[37vh] lg:w-[45vw]">
                     <X className="fixed z-[1] hover:cursor-pointer" onClick={()=>setFeedbackOpen(false)} />
                     <p className="relative text-center p-2 font-bold">Feedback</p>
-                    <Textarea className="relative h-[60%] md:h-[64%] xl:h-[70%] bg-gray-200" placeholder="I value your feedback." value={feedback} onChange={e=>setFeedback(e.target.value)}/>
+                    <Textarea className="relative h-[60%] md:h-[64%] xl:h-[70%] bg-gray-200" placeholder="Please let me know how your experience goes! I'd gladly welcome any constructive feedback!" value={feedback} onChange={e=>setFeedback(e.target.value)}/>
                     <Button onClick={()=>{
                       sendFeedback(feedback);
                     }} className="relative mt-2 w-[100%] cursor-pointer">Submit Feedback</Button>
