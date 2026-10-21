@@ -19,6 +19,12 @@ const FAQs = () => {
             defaultValue={["faq"]}
             className="max-w-lg"
         >
+            <AccordionItem value="who" className='border-black'>
+                <AccordionTrigger>Who made this?</AccordionTrigger>
+                <AccordionContent>
+                    Olamide Olosunde, a student at Dakota State University. Feel free to me at <a href="mailto:Olamide.Olosunde1@gmail.com">Olamide.Olosunde1@gmail.com</a>
+                </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="what" className='border-black'>
                 <AccordionTrigger>What is this for?</AccordionTrigger>
                 <AccordionContent>

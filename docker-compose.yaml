@@ -2,10 +2,7 @@ name: bimo
 
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: dockerfile
-    image: bimo-backend
+    image: bimo_be_local:v1
     env_file:
       - ./backend/.env.list
     ports:
@@ -15,12 +12,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: dockerfile
-      args:
-        VITE_BACKEND: ${VITE_BACKEND:-http://localhost:3000}
-    image: bimo-frontend
+    image: bimo_fe_local:v1
     ports:
       - "8080:80"
     depends_on:
