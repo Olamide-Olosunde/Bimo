@@ -76,6 +76,7 @@ flowchart LR
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/api/bot` | Create a bot from an uploaded PDF (`multipart/form-data`, field `file`) or raw text (`doc`) |
+| `GET` | `/api/bot` | List bots |
 | `GET` | `/api/bot/:id` | Get one bot |
 | `PUT` | `/api/bot/:id` | Update a bot (for example, its chat history) |
 | `DELETE` | `/api/bot/:id` | Permanently delete a bot and its data |
@@ -91,7 +92,12 @@ flowchart LR
 - A MongoDB connection string (MongoDB Atlas works)
 - An OpenAI API key (for embeddings) and an Amazon Nova API key (for chat)
 
-### 1. Configure environment variables
+### 1. Clone the repo
+```bash
+git clone https://github.com/Olamide-Olosunde/Bimo.git && cd Bimo
+```
+
+### 2. Configure environment variables
 
 Create `backend/.env.list`. Docker Compose reads it, so use plain `KEY=value` lines with no spaces around `=`:
 
@@ -105,12 +111,12 @@ PROD_URL=http://localhost:8080
 
 `DEV_URL` and `PROD_URL` are the origins the backend allows for CORS.
 
-### 2a. Run with Docker (recommended)
+### 3a. Run with Docker (recommended)
 
 ```bash
 # Build the images
-docker build -t bimo_be_local ./backend
-docker build -t bimo_fe_local ./frontend   # empty VITE_BACKEND: the UI calls /api on its own origin, proxied by NGINX
+docker build -t bimo_be_local:v1 ./backend
+docker build --build-arg VITE_BACKEND=http://localhost:3000 -t bimo_fe_local:v1 ./frontend
 
 # Start everything
 docker compose up -d
@@ -119,7 +125,7 @@ docker compose up -d
 - App: **http://localhost:8080**
 - API: **http://localhost:3000**
 
-### 2b. Run locally for development
+### 3b. Run locally for development
 
 ```bash
 # Backend (reads backend/.env)
