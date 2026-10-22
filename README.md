@@ -2,6 +2,8 @@
 
 **Turn any document into a chatbot in seconds.**
 
+🔗 **Live demo: [bimo.iamola.net](https://bimo.iamola.net)**
+
 Bimo is a full-stack AI app that turns a PDF or a text, CSV or JSON file into a chatbot grounded in that document. Each bot answers questions using **retrieval-augmented generation (RAG)**: it looks up the most relevant parts of your document and answers *only* from them. If the answer isn't in the document, the bot says so instead of making something up.
 
 > [!WARNING]
